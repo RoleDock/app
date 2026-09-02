@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: roledock-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/roledock}
+    username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:roledock}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD:roledock}}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
