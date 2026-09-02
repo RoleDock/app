@@ -25,7 +25,9 @@ describe('App', () => {
 
   it('should render the backend status supplied by the health service', async () => {
     const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('RoleDock');
     expect(compiled.textContent).toContain('Backend status: UP');
