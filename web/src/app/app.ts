@@ -14,5 +14,10 @@ import { HealthService } from './health.service';
 export class App {
   protected readonly backendStatus$ = inject(HealthService)
     .getStatus()
-    .pipe(catchError(() => of('UNAVAILABLE')));
+    .pipe(
+      catchError((err) => {
+        console.error('Failed to load backend health status', err);
+        return of('UNAVAILABLE');
+      }),
+    );
 }
