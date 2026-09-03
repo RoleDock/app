@@ -1,0 +1,149 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002-candidate-profile
+      author: roledock
+      comment: Store the complete, manually maintained current candidate profile.
+      changes:
+        - sql:
+            splitStatements: true
+            stripComments: true
+            sql: |
+              CREATE TABLE candidate_profile (
+                id UUID PRIMARY KEY,
+                profile_key VARCHAR(20) NOT NULL DEFAULT 'CURRENT',
+                main_title VARCHAR(200),
+                current_location VARCHAR(300),
+                professional_summary VARCHAR(5000),
+                mobility VARCHAR(500),
+                additional_information VARCHAR(5000),
+                CONSTRAINT uk_candidate_profile_key UNIQUE (profile_key),
+                CONSTRAINT ck_candidate_profile_key CHECK (profile_key = 'CURRENT')
+              );
+
+              CREATE TABLE profile_target_role (
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                role_name VARCHAR(200) NOT NULL,
+                PRIMARY KEY (profile_id, sort_order),
+                CONSTRAINT fk_target_role_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_desired_location (
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                location_name VARCHAR(300) NOT NULL,
+                PRIMARY KEY (profile_id, sort_order),
+                CONSTRAINT fk_desired_location_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_work_mode (
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                work_mode VARCHAR(20) NOT NULL,
+                PRIMARY KEY (profile_id, sort_order),
+                CONSTRAINT ck_profile_work_mode CHECK (work_mode IN ('ONSITE', 'HYBRID', 'REMOTE')),
+                CONSTRAINT fk_work_mode_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_contract_type (
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                contract_type VARCHAR(100) NOT NULL,
+                PRIMARY KEY (profile_id, sort_order),
+                CONSTRAINT fk_contract_type_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_skill (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                name VARCHAR(150) NOT NULL,
+                category VARCHAR(150),
+                CONSTRAINT uk_profile_skill_owner_id UNIQUE (profile_id, id),
+                CONSTRAINT fk_skill_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_experience (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                company VARCHAR(200),
+                position_title VARCHAR(200),
+                location VARCHAR(300),
+                start_date DATE,
+                end_date DATE,
+                current_position BOOLEAN NOT NULL DEFAULT FALSE,
+                description VARCHAR(5000),
+                CONSTRAINT ck_experience_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+                CONSTRAINT ck_current_experience_end CHECK (current_position = FALSE OR end_date IS NULL),
+                CONSTRAINT fk_experience_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE experience_achievement (
+                experience_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                achievement VARCHAR(1000) NOT NULL,
+                PRIMARY KEY (experience_id, sort_order),
+                CONSTRAINT fk_achievement_experience FOREIGN KEY (experience_id) REFERENCES profile_experience(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE experience_skill (
+                experience_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                skill_id UUID NOT NULL,
+                PRIMARY KEY (experience_id, sort_order),
+                CONSTRAINT uk_experience_skill UNIQUE (experience_id, skill_id),
+                CONSTRAINT fk_experience_skill_experience FOREIGN KEY (experience_id) REFERENCES profile_experience(id) ON DELETE CASCADE,
+                CONSTRAINT fk_experience_skill_skill FOREIGN KEY (skill_id) REFERENCES profile_skill(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_education (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                institution VARCHAR(250),
+                degree_title VARCHAR(250),
+                field_of_study VARCHAR(200),
+                start_date DATE,
+                end_date DATE,
+                description VARCHAR(3000),
+                CONSTRAINT ck_education_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+                CONSTRAINT fk_education_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_language (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                name VARCHAR(150),
+                declared_level VARCHAR(150),
+                CONSTRAINT fk_language_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_certification (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                name VARCHAR(250),
+                issuing_organization VARCHAR(250),
+                issue_date DATE,
+                expiration_date DATE,
+                credential_id VARCHAR(250),
+                credential_url VARCHAR(1000),
+                CONSTRAINT ck_certification_dates CHECK (expiration_date IS NULL OR issue_date IS NULL OR expiration_date >= issue_date),
+                CONSTRAINT fk_certification_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE profile_project (
+                id UUID PRIMARY KEY,
+                profile_id UUID NOT NULL,
+                sort_order INTEGER NOT NULL,
+                name VARCHAR(250),
+                project_role VARCHAR(200),
+                description VARCHAR(3000),
+                start_date DATE,
+                end_date DATE,
+                project_url VARCHAR(1000),
+                CONSTRAINT ck_project_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+                CONSTRAINT fk_project_profile FOREIGN KEY (profile_id) REFERENCES candidate_profile(id) ON DELETE CASCADE
+              );

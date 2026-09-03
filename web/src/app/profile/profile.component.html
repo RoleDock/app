@@ -1,0 +1,160 @@
+<header class="app-header">
+  <a class="brand" routerLink="/profile" aria-label="RoleDock, accueil">RoleDock</a>
+  <span>Profil candidat</span>
+</header>
+
+<main class="page-shell">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Source de vérité</p>
+      <h1>Mon profil candidat</h1>
+      <p>Renseignez uniquement les informations qui vous appartiennent. Tous les champs métier peuvent rester vides.</p>
+    </div>
+    @if (!loading() && !loadError()) {
+      <button class="primary top-save" type="button" (click)="save()" [disabled]="saving()">
+        {{ saving() ? 'Enregistrement…' : 'Enregistrer le profil' }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <section class="state-card" aria-live="polite" data-testid="loading-state">
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Chargement de votre profil…</p>
+    </section>
+  } @else if (loadError()) {
+    <section class="state-card error-state" role="alert" data-testid="load-error">
+      <h2>Le profil n’a pas pu être chargé</h2>
+      <p>Vérifiez que le serveur est disponible, puis réessayez.</p>
+      <button class="secondary" type="button" (click)="reload()">Réessayer</button>
+    </section>
+  } @else {
+    @if (!profileExists()) {
+      <p class="notice" role="status" data-testid="empty-profile">Aucun profil enregistré. Vous pouvez commencer avec les informations dont vous disposez.</p>
+    }
+    @if (saveSuccess()) {
+      <p class="notice success" role="status" data-testid="save-success">Profil enregistré avec succès.</p>
+    }
+    @if (saveError(); as message) {
+      <p class="notice error" role="alert" data-testid="save-error">{{ message }}</p>
+    }
+    @if (submitted() && form.invalid) {
+      <p class="notice error" role="alert" data-testid="validation-summary">Corrigez les champs signalés avant d’enregistrer.</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <section class="form-section" aria-labelledby="positioning-title">
+        <div class="section-heading"><div><span class="step">01</span><h2 id="positioning-title">Positionnement professionnel</h2></div></div>
+        <div class="fields two-columns">
+          <label>Intitulé principal<input formControlName="mainTitle" maxlength="200" placeholder="Ex. Développeuse backend Java" /></label>
+          <label>Localisation actuelle<input formControlName="currentLocation" maxlength="300" placeholder="Ex. Lyon, France" /></label>
+        </div>
+        <div class="repeatable-heading"><h3>Postes recherchés</h3><button type="button" class="add" (click)="addTextItem(form.controls.targetRoles, 200)">+ Ajouter un poste</button></div>
+        <div class="compact-list">
+          @for (role of form.controls.targetRoles.controls; track trackControl($index, role); let i = $index) {
+            <div class="inline-row"><label [for]="'target-role-' + i" class="sr-only">Poste recherché {{ i + 1 }}</label><input [id]="'target-role-' + i" [formControl]="role" maxlength="200" /><button type="button" class="remove" (click)="removeTextItem(form.controls.targetRoles, i)" [attr.aria-label]="'Supprimer le poste recherché ' + (i + 1)">Supprimer</button></div>
+          } @empty { <p class="empty-list">Aucun poste recherché ajouté.</p> }
+        </div>
+        <label>Présentation professionnelle<textarea formControlName="professionalSummary" maxlength="5000" rows="5" placeholder="Votre parcours, votre expertise et ce que vous recherchez."></textarea></label>
+      </section>
+
+      <section class="form-section" aria-labelledby="preferences-title">
+        <div class="section-heading"><div><span class="step">02</span><h2 id="preferences-title">Préférences</h2></div></div>
+        <label>Mobilité<textarea formControlName="mobility" maxlength="500" rows="2" placeholder="Ex. déplacements ponctuels, mobilité nationale…"></textarea></label>
+        <fieldset formGroupName="workModes"><legend>Modes de travail recherchés</legend><div class="checkbox-row">
+          @for (option of workModeOptions; track option.value) { <label class="checkbox"><input type="checkbox" [formControlName]="option.value" /> {{ option.label }}</label> }
+        </div></fieldset>
+        <div class="repeatable-heading"><h3>Zones géographiques</h3><button type="button" class="add" (click)="addTextItem(form.controls.desiredLocations, 300)">+ Ajouter une zone</button></div>
+        <div class="compact-list">
+          @for (location of form.controls.desiredLocations.controls; track trackControl($index, location); let i = $index) { <div class="inline-row"><label [for]="'desired-location-' + i" class="sr-only">Zone {{ i + 1 }}</label><input [id]="'desired-location-' + i" [formControl]="location" maxlength="300" /><button type="button" class="remove" (click)="removeTextItem(form.controls.desiredLocations, i)">Supprimer</button></div> }
+          @empty { <p class="empty-list">Aucune zone géographique ajoutée.</p> }
+        </div>
+        <div class="repeatable-heading"><h3>Types de contrats</h3><button type="button" class="add" (click)="addTextItem(form.controls.contractTypes, 100)">+ Ajouter un contrat</button></div>
+        <div class="compact-list">
+          @for (contract of form.controls.contractTypes.controls; track trackControl($index, contract); let i = $index) { <div class="inline-row"><label [for]="'contract-' + i" class="sr-only">Type de contrat {{ i + 1 }}</label><input [id]="'contract-' + i" [formControl]="contract" maxlength="100" placeholder="Ex. CDI" /><button type="button" class="remove" (click)="removeTextItem(form.controls.contractTypes, i)">Supprimer</button></div> }
+          @empty { <p class="empty-list">Aucun type de contrat ajouté.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="skills-title">
+        <div class="section-heading"><div><span class="step">03</span><h2 id="skills-title">Compétences</h2></div><button type="button" class="add" data-testid="add-skill" (click)="addSkill()">+ Ajouter</button></div>
+        <p class="section-help">Ajoutez uniquement des compétences que vous déclarez explicitement. Elles ne sont jamais déduites de vos expériences.</p>
+        <div class="cards-list" formArrayName="skills">
+          @for (skill of form.controls.skills.controls; track skill.controls.id.value; let i = $index) {
+            <article class="item-card" [formGroupName]="i" data-testid="skill-item">
+              <div class="card-heading"><h3>Compétence {{ i + 1 }}</h3><button type="button" class="remove" (click)="removeSkill(i)">Supprimer</button></div>
+              <div class="fields two-columns">
+                <label>Nom <span aria-hidden="true">*</span><input formControlName="name" maxlength="150" /></label>
+                <label>Catégorie<input formControlName="category" maxlength="150" placeholder="Ex. Langages, Méthodes" /></label>
+              </div>
+              @if (skill.controls.name.touched && skill.controls.name.hasError('required')) { <p class="field-error">Le nom de la compétence est requis.</p> }
+            </article>
+          } @empty { <p class="empty-list">Aucune compétence déclarée.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="experiences-title">
+        <div class="section-heading"><div><span class="step">04</span><h2 id="experiences-title">Expériences</h2></div><button type="button" class="add" data-testid="add-experience" (click)="addExperience()">+ Ajouter</button></div>
+        <div class="cards-list" formArrayName="experiences">
+          @for (experience of form.controls.experiences.controls; track experience.controls.id.value; let i = $index) {
+            <article class="item-card" [formGroupName]="i" data-testid="experience-item">
+              <div class="card-heading"><h3>Expérience {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.experiences.removeAt(i)">Supprimer</button></div>
+              <div class="fields two-columns"><label>Entreprise<input formControlName="company" maxlength="200" /></label><label>Poste<input formControlName="position" maxlength="200" /></label><label>Localisation<input formControlName="location" maxlength="300" /></label><label class="checkbox current"><input type="checkbox" formControlName="current" /> Expérience en cours</label><label>Date de début<input type="date" formControlName="startDate" /></label><label>Date de fin<input type="date" formControlName="endDate" /></label></div>
+              @if (experience.touched && experience.hasError('dateRange')) { <p class="field-error">La date de fin ne peut pas précéder la date de début.</p> }
+              @if (experience.touched && experience.hasError('currentWithEndDate')) { <p class="field-error">Une expérience en cours ne peut pas avoir de date de fin.</p> }
+              <label>Description<textarea formControlName="description" maxlength="5000" rows="4"></textarea></label>
+              <div class="repeatable-heading"><h4>Réalisations</h4><button type="button" class="add small" (click)="addTextItem(experience.controls.achievements, 1000)">+ Ajouter</button></div>
+              @for (achievement of experience.controls.achievements.controls; track trackControl($index, achievement); let achievementIndex = $index) { <div class="inline-row"><label [for]="'achievement-' + i + '-' + achievementIndex" class="sr-only">Réalisation {{ achievementIndex + 1 }}</label><input [id]="'achievement-' + i + '-' + achievementIndex" [formControl]="achievement" maxlength="1000" /><button type="button" class="remove" (click)="experience.controls.achievements.removeAt(achievementIndex)">Supprimer</button></div> } @empty { <p class="empty-list">Aucune réalisation ajoutée.</p> }
+              <fieldset class="skill-links"><legend>Compétences rattachées explicitement</legend>
+                @for (skill of form.controls.skills.controls; track skill.controls.id.value) { <label class="checkbox"><input type="checkbox" [checked]="isSkillAttached(experience, skill.controls.id.value)" (change)="toggleExperienceSkill(experience, skill.controls.id.value, $any($event.target).checked)" /> {{ skill.controls.name.value || 'Compétence sans nom' }}</label> }
+                @empty { <p class="empty-list">Ajoutez d’abord une compétence au profil.</p> }
+              </fieldset>
+            </article>
+          } @empty { <p class="empty-list">Aucune expérience ajoutée.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="education-title">
+        <div class="section-heading"><div><span class="step">05</span><h2 id="education-title">Formations</h2></div><button type="button" class="add" (click)="addEducation()">+ Ajouter</button></div>
+        <div class="cards-list" formArrayName="educations">
+          @for (education of form.controls.educations.controls; track education.controls.id.value; let i = $index) { <article class="item-card" [formGroupName]="i"><div class="card-heading"><h3>Formation {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.educations.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Établissement<input formControlName="institution" maxlength="250" /></label><label>Diplôme ou intitulé<input formControlName="degree" maxlength="250" /></label><label>Domaine<input formControlName="field" maxlength="200" /></label><span></span><label>Date de début<input type="date" formControlName="startDate" /></label><label>Date de fin<input type="date" formControlName="endDate" /></label></div>@if (education.touched && education.hasError('dateRange')) { <p class="field-error">La date de fin ne peut pas précéder la date de début.</p> }<label>Description<textarea formControlName="description" maxlength="3000" rows="3"></textarea></label></article> }
+          @empty { <p class="empty-list">Aucune formation ajoutée.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="languages-title">
+        <div class="section-heading"><div><span class="step">06</span><h2 id="languages-title">Langues</h2></div><button type="button" class="add" (click)="addLanguage()">+ Ajouter</button></div>
+        <div class="cards-list" formArrayName="languages">
+          @for (language of form.controls.languages.controls; track language.controls.id.value; let i = $index) { <article class="item-card compact-card" [formGroupName]="i"><div class="card-heading"><h3>Langue {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.languages.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Langue<input formControlName="name" maxlength="150" /></label><label>Niveau déclaré<input formControlName="level" maxlength="150" placeholder="Ex. courant, C1" /></label></div></article> }
+          @empty { <p class="empty-list">Aucune langue ajoutée.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="certifications-title">
+        <div class="section-heading"><div><span class="step">07</span><h2 id="certifications-title">Certifications</h2></div><button type="button" class="add" (click)="addCertification()">+ Ajouter</button></div>
+        <div class="cards-list" formArrayName="certifications">
+          @for (certification of form.controls.certifications.controls; track certification.controls.id.value; let i = $index) { <article class="item-card" [formGroupName]="i"><div class="card-heading"><h3>Certification {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.certifications.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Nom<input formControlName="name" maxlength="250" /></label><label>Organisme émetteur<input formControlName="issuer" maxlength="250" /></label><label>Date d’obtention<input type="date" formControlName="issueDate" /></label><label>Date d’expiration<input type="date" formControlName="expirationDate" /></label><label>Identifiant<input formControlName="credentialId" maxlength="250" /></label><label>URL<input type="url" formControlName="credentialUrl" maxlength="1000" /></label></div>@if (certification.touched && certification.hasError('dateRange')) { <p class="field-error">La date d’expiration ne peut pas précéder la date d’obtention.</p> }@if (certification.controls.credentialUrl.touched && certification.controls.credentialUrl.hasError('pattern')) { <p class="field-error">Saisissez une URL commençant par http:// ou https://.</p> }</article> }
+          @empty { <p class="empty-list">Aucune certification ajoutée.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="projects-title">
+        <div class="section-heading"><div><span class="step">08</span><h2 id="projects-title">Projets significatifs</h2></div><button type="button" class="add" (click)="addProject()">+ Ajouter</button></div>
+        <div class="cards-list" formArrayName="projects">
+          @for (project of form.controls.projects.controls; track project.controls.id.value; let i = $index) { <article class="item-card" [formGroupName]="i"><div class="card-heading"><h3>Projet {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.projects.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Nom<input formControlName="name" maxlength="250" /></label><label>Rôle<input formControlName="role" maxlength="200" /></label><label>Date de début<input type="date" formControlName="startDate" /></label><label>Date de fin<input type="date" formControlName="endDate" /></label><label class="wide">URL<input type="url" formControlName="url" maxlength="1000" /></label></div>@if (project.touched && project.hasError('dateRange')) { <p class="field-error">La date de fin ne peut pas précéder la date de début.</p> }@if (project.controls.url.touched && project.controls.url.hasError('pattern')) { <p class="field-error">Saisissez une URL commençant par http:// ou https://.</p> }<label>Description<textarea formControlName="description" maxlength="3000" rows="3"></textarea></label></article> }
+          @empty { <p class="empty-list">Aucun projet ajouté.</p> }
+        </div>
+      </section>
+
+      <section class="form-section" aria-labelledby="additional-title">
+        <div class="section-heading"><div><span class="step">09</span><h2 id="additional-title">Informations complémentaires</h2></div></div>
+        <label>Informations utiles<textarea formControlName="additionalInformation" maxlength="5000" rows="5" placeholder="Disponibilité, permis, engagements ou toute autre information utile."></textarea></label>
+      </section>
+
+      <div class="form-actions">
+        <p>Les préférences sont conservées à titre informatif et ne participent à aucun score.</p>
+        <button class="primary" type="submit" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer le profil' }}</button>
+      </div>
+    </form>
+  }
+</main>

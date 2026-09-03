@@ -1,19 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
 import { App } from './app';
-import { HealthService } from './health.service';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        {
-          provide: HealthService,
-          useValue: { getStatus: () => of('UP') },
-        },
-      ],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
@@ -23,13 +17,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the backend status supplied by the health service', async () => {
+  it('should provide the application router outlet', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('RoleDock');
-    expect(compiled.textContent).toContain('Backend status: UP');
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 });
