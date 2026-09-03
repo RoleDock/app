@@ -164,6 +164,15 @@ class ProfileControllerTests {
     }
 
     @Test
+    void returnsTheSharedApiErrorContractForUnreadableJson() throws Exception {
+        mockMvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("La requête contient des données invalides."))
+                .andExpect(jsonPath("$.fieldErrors.request").value("Le format de la requête est invalide."));
+    }
+
+    @Test
     void acceptsAnEmptyPartialProfileWithoutInferringCandidateFacts() throws Exception {
         mockMvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content(emptyProfileWith("\"skills\":[],\"experiences\":[]")))
                 .andExpect(status().isOk())

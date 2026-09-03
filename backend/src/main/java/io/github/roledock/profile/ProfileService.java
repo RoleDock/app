@@ -3,16 +3,11 @@ package io.github.roledock.profile;
 import static io.github.roledock.profile.ProfileDtos.*;
 
 import jakarta.persistence.EntityManager;
-import java.net.URI;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.stereotype.Service;
@@ -24,10 +19,12 @@ class ProfileService {
 
     private final CandidateProfileRepository repository;
     private final EntityManager entityManager;
+    private final ProfileValidator validator;
 
-    ProfileService(CandidateProfileRepository repository, EntityManager entityManager) {
+    ProfileService(CandidateProfileRepository repository, EntityManager entityManager, ProfileValidator validator) {
         this.repository = repository;
         this.entityManager = entityManager;
+        this.validator = validator;
     }
 
     @Transactional(readOnly = true)
@@ -37,8 +34,8 @@ class ProfileService {
 
     @Transactional
     Response saveCurrentProfile(SaveRequest request) {
-        validate(request);
         Optional<CandidateProfile> currentProfile = repository.findByProfileKey(CURRENT);
+        validator.validate(request, currentProfile.orElse(null));
         CandidateProfile profile = currentProfile.orElseGet(() -> new CandidateProfile(UUID.randomUUID()));
 
         profile.setMainTitle(clean(request.mainTitle()));
@@ -70,7 +67,7 @@ class ProfileService {
         List<Skill> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             SkillData input = inputs.get(i);
-            Skill skill = ownedOrNew(input.id(), existing, Skill.class, () -> new Skill(input.id(), profile), "skills");
+            Skill skill = existing.computeIfAbsent(input.id(), id -> new Skill(id, profile));
             skill.setSortOrder(i);
             skill.update(cleanRequired(input.name()), clean(input.category()));
             updated.add(skill);
@@ -84,8 +81,7 @@ class ProfileService {
         List<Experience> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             ExperienceData input = inputs.get(i);
-            Experience experience = ownedOrNew(input.id(), existing, Experience.class,
-                    () -> new Experience(input.id(), profile), "experiences");
+            Experience experience = existing.computeIfAbsent(input.id(), id -> new Experience(id, profile));
             experience.setSortOrder(i);
             experience.update(clean(input.company()), clean(input.position()), clean(input.location()), input.startDate(),
                     input.endDate(), input.current(), clean(input.description()));
@@ -102,8 +98,7 @@ class ProfileService {
         List<Education> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             EducationData input = inputs.get(i);
-            Education education = ownedOrNew(input.id(), existing, Education.class,
-                    () -> new Education(input.id(), profile), "educations");
+            Education education = existing.computeIfAbsent(input.id(), id -> new Education(id, profile));
             education.setSortOrder(i);
             education.update(clean(input.institution()), clean(input.degree()), clean(input.field()), input.startDate(), input.endDate(), clean(input.description()));
             updated.add(education);
@@ -116,8 +111,7 @@ class ProfileService {
         List<Language> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             LanguageData input = inputs.get(i);
-            Language language = ownedOrNew(input.id(), existing, Language.class,
-                    () -> new Language(input.id(), profile), "languages");
+            Language language = existing.computeIfAbsent(input.id(), id -> new Language(id, profile));
             language.setSortOrder(i);
             language.update(clean(input.name()), clean(input.level()));
             updated.add(language);
@@ -130,8 +124,7 @@ class ProfileService {
         List<Certification> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             CertificationData input = inputs.get(i);
-            Certification certification = ownedOrNew(input.id(), existing, Certification.class,
-                    () -> new Certification(input.id(), profile), "certifications");
+            Certification certification = existing.computeIfAbsent(input.id(), id -> new Certification(id, profile));
             certification.setSortOrder(i);
             certification.update(clean(input.name()), clean(input.issuer()), input.issueDate(), input.expirationDate(),
                     clean(input.credentialId()), clean(input.credentialUrl()));
@@ -145,85 +138,12 @@ class ProfileService {
         List<Project> updated = new ArrayList<>();
         for (int i = 0; i < inputs.size(); i++) {
             ProjectData input = inputs.get(i);
-            Project project = ownedOrNew(input.id(), existing, Project.class,
-                    () -> new Project(input.id(), profile), "projects");
+            Project project = existing.computeIfAbsent(input.id(), id -> new Project(id, profile));
             project.setSortOrder(i);
             project.update(clean(input.name()), clean(input.role()), clean(input.description()), input.startDate(), input.endDate(), clean(input.url()));
             updated.add(project);
         }
         replaceValues(profile.getProjects(), updated);
-    }
-
-    private <T> T ownedOrNew(UUID id, Map<UUID, T> existing, Class<T> type, java.util.function.Supplier<T> factory, String field) {
-        T owned = existing.get(id);
-        if (owned != null) return owned;
-        if (entityManager.find(type, id) != null) {
-            throw new ProfileValidationException(Map.of(field, "Un identifiant appartient à un autre profil."));
-        }
-        return factory.get();
-    }
-
-    private void validate(SaveRequest request) {
-        Map<String, String> errors = new LinkedHashMap<>();
-        checkUniqueIds(safe(request.skills()).stream().map(SkillData::id).toList(), "skills", errors);
-        checkUniqueIds(safe(request.experiences()).stream().map(ExperienceData::id).toList(), "experiences", errors);
-        checkUniqueIds(safe(request.educations()).stream().map(EducationData::id).toList(), "educations", errors);
-        checkUniqueIds(safe(request.languages()).stream().map(LanguageData::id).toList(), "languages", errors);
-        checkUniqueIds(safe(request.certifications()).stream().map(CertificationData::id).toList(), "certifications", errors);
-        checkUniqueIds(safe(request.projects()).stream().map(ProjectData::id).toList(), "projects", errors);
-
-        Set<UUID> skillIds = new HashSet<>(safe(request.skills()).stream().map(SkillData::id).toList());
-        for (int i = 0; i < safe(request.experiences()).size(); i++) {
-            ExperienceData experience = request.experiences().get(i);
-            String path = "experiences[" + i + "]";
-            checkDates(experience.startDate(), experience.endDate(), path, errors);
-            if (experience.current() && experience.endDate() != null) errors.put(path + ".endDate", "Une expérience actuelle ne peut pas avoir de date de fin.");
-            Set<UUID> seen = new HashSet<>();
-            for (UUID skillId : safe(experience.skillIds())) {
-                if (!skillIds.contains(skillId)) errors.put(path + ".skillIds", "Chaque compétence rattachée doit appartenir au profil envoyé.");
-                if (!seen.add(skillId)) errors.put(path + ".skillIds", "Une compétence ne peut être rattachée qu'une fois.");
-            }
-        }
-        for (int i = 0; i < safe(request.educations()).size(); i++) {
-            EducationData value = request.educations().get(i);
-            checkDates(value.startDate(), value.endDate(), "educations[" + i + "]", errors);
-        }
-        for (int i = 0; i < safe(request.certifications()).size(); i++) {
-            CertificationData value = request.certifications().get(i);
-            String path = "certifications[" + i + "]";
-            checkDates(value.issueDate(), value.expirationDate(), path, errors);
-            checkUrl(value.credentialUrl(), path + ".credentialUrl", errors);
-        }
-        for (int i = 0; i < safe(request.projects()).size(); i++) {
-            ProjectData value = request.projects().get(i);
-            String path = "projects[" + i + "]";
-            checkDates(value.startDate(), value.endDate(), path, errors);
-            checkUrl(value.url(), path + ".url", errors);
-        }
-        if (!errors.isEmpty()) throw new ProfileValidationException(errors);
-    }
-
-    private static void checkDates(LocalDate start, LocalDate end, String path, Map<String, String> errors) {
-        if (start != null && end != null && end.isBefore(start)) errors.put(path + ".endDate", "La date de fin ne peut pas précéder la date de début.");
-    }
-
-    private static void checkUrl(String value, String path, Map<String, String> errors) {
-        String cleaned = clean(value);
-        if (cleaned == null) return;
-        try {
-            URI uri = URI.create(cleaned);
-            if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) || uri.getHost() == null) {
-                errors.put(path, "L'URL doit être une adresse HTTP ou HTTPS valide.");
-            }
-        } catch (IllegalArgumentException exception) {
-            errors.put(path, "L'URL doit être une adresse HTTP ou HTTPS valide.");
-        }
-    }
-
-    private static void checkUniqueIds(List<UUID> ids, String field, Map<String, String> errors) {
-        if (ids.stream().anyMatch(java.util.Objects::isNull) || new HashSet<>(ids).size() != ids.size()) {
-            errors.put(field, "Les identifiants doivent être présents et uniques.");
-        }
     }
 
     private Response toResponse(CandidateProfile profile) {
