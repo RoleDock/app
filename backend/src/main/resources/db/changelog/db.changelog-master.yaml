@@ -6,3 +6,5 @@ databaseChangeLog:
       changes:
         - tagDatabase:
             tag: baseline
+  - include:
+      file: db/changelog/0002-candidate-profile.yaml

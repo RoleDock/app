@@ -5,12 +5,22 @@ schema and may evolve as each feature is implemented and tested.
 
 ## Candidate profile
 
+The MVP stores one current candidate profile as a single aggregate. The REST API
+loads or replaces that aggregate through `/api/profile`; child identifiers are
+UUIDs and ordered collections persist an explicit position. Skills belong to the
+profile independently and an experience links to them only through explicit
+skill identifiers supplied by the candidate.
+
 ### `CandidateProfile`
 
 - `id`
-- `title`
-- `location`
-- `summary`
+- `main_title`
+- ordered target roles
+- `current_location`
+- `professional_summary`
+- mobility and ordered desired locations
+- ordered work modes and contract types
+- `additional_information`
 
 ### `Experience`
 
@@ -18,9 +28,13 @@ schema and may evolve as each feature is implemented and tested.
 - `candidate_profile_id`
 - `company`
 - `position`
+- `location`
 - `start_date`
 - `end_date`
+- `current_position`
 - `description`
+- ordered achievements
+- ordered explicit links to profile skills
 
 ### `Education`
 
@@ -28,24 +42,23 @@ schema and may evolve as each feature is implemented and tested.
 - `candidate_profile_id`
 - `institution`
 - `title`
+- `field_of_study`
 - `start_date`
 - `end_date`
+- `description`
 
 ### `Skill`
 
 - `id`
+- `candidate_profile_id`
 - `name`
 - `category`
-
-### `ProfileSkill`
-
-- `candidate_profile_id`
-- `skill_id`
 
 ### `ExperienceSkill`
 
 - `experience_id`
 - `skill_id`
+- `sort_order`
 
 ### `Language`
 
@@ -53,6 +66,28 @@ schema and may evolve as each feature is implemented and tested.
 - `candidate_profile_id`
 - `name`
 - `level`
+
+### `Certification`
+
+- `id`
+- `candidate_profile_id`
+- `name`
+- `issuing_organization`
+- `issue_date`
+- `expiration_date`
+- `credential_id`
+- `credential_url`
+
+### `Project`
+
+- `id`
+- `candidate_profile_id`
+- `name`
+- `project_role`
+- `description`
+- `start_date`
+- `end_date`
+- `project_url`
 
 ## Job offers and analysis
 
