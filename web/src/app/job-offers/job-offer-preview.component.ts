@@ -1,5 +1,6 @@
-import { Component, input } from '@angular/core';
-import { Extraction, CurrentExtraction } from './job-offer.models';
+import { Component, computed, input } from '@angular/core';
+import { Extraction, CurrentExtraction, Requirement, CurrentRequirement } from './job-offer.models';
+import { groupRequirements } from './requirement-groups';
 
 @Component({
   selector: 'app-job-offer-preview',
@@ -16,28 +17,53 @@ import { Extraction, CurrentExtraction } from './job-offer.models';
           @if (data.workArrangement.onSiteDaysPerWeek !== null) { · {{ data.workArrangement.onSiteDaysPerWeek }} jour(s) sur site / semaine }
         </dd></div>
       </dl>
-      <h3>Résumé</h3><p>{{ data.summary ?? 'Non précisé' }}</p>
-      <h3>Missions</h3>
-      <ul>@for (mission of data.missions; track $index) { <li>{{ mission }}</li> } @empty { <li>Aucune mission extraite.</li> }</ul>
-      <h3>Exigences</h3>
-      @for (requirement of data.requirements; track $index) {
-        <article class="requirement">
-          <h4>{{ requirement.canonicalLabel }}</h4>
-          <p>{{ label(requirement.requirementKind) }} · {{ label(requirement.centrality) }} · {{ label(requirement.category) }}</p>
-          @if (requirement.rawText) { <blockquote>{{ requirement.rawText }}</blockquote> } @else { <p>Ajoutée par vous — sans citation automatique</p> }
-        </article>
-      } @empty { <p>Aucune exigence extraite.</p> }
+      <div class="overview">
+        <section class="overview-section" aria-label="Résumé">
+          <h3>Le poste en bref</h3><p>{{ data.summary ?? 'Non précisé' }}</p>
+        </section>
+        <section class="overview-section" aria-label="Missions">
+          <h3>Vos missions</h3>
+          <ul class="missions">@for (mission of data.missions; track $index) { <li>{{ mission }}</li> } @empty { <li>Aucune mission extraite.</li> }</ul>
+        </section>
+      </div>
+      <section class="requirements-section" aria-label="Exigences">
+        <div class="requirements-heading"><h3>Exigences du poste</h3><span class="count">{{ data.requirements.length }}</span></div>
+        @for (group of groups(); track group.category) {
+          <section class="requirement-category">
+            <h4 class="category-heading"><button type="button" class="category-toggle" [attr.aria-expanded]="openCategories.has(group.category)" [attr.aria-controls]="'offer-category-' + group.category" (click)="toggleCategory(group.category)"><span>{{ label(group.category) }}</span><span class="category-count">{{ group.entries.length }}</span><span class="category-chevron" aria-hidden="true">{{ openCategories.has(group.category) ? '−' : '+' }}</span></button></h4>
+            <div class="category-content" [id]="'offer-category-' + group.category" [hidden]="!openCategories.has(group.category)">
+            <div class="requirements-grid">
+          @for (entry of group.entries; track entry.index) {
+            @let requirement = entry.requirement;
+            <article class="requirement">
+              <p class="category">{{ label(requirement.category) }}</p>
+              <h4>{{ requirement.canonicalLabel }}</h4>
+              <div class="badges">
+                <span class="badge" [class.required]="requirement.requirementKind === 'REQUIRED'">{{ label(requirement.requirementKind) }}</span>
+                <span class="priority">Importance : {{ label(requirement.centrality) }}</span>
+              </div>
+              @if (requirement.rawText) {
+                <div class="source-quote"><p class="source-label">Dans l’annonce</p><blockquote>{{ requirement.rawText }}</blockquote></div>
+              } @else { <p class="manual-source">Ajoutée par vous — sans citation automatique</p> }
+            </article>
+          }
+            </div>
+            </div>
+          </section>
+        } @empty { <p class="empty-list">Aucune exigence extraite.</p> }
+      </section>
     </section>
   `,
-  styles: `
-    .metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-    dt { font-weight: 600; } dd { margin: .3rem 0; }
-    .requirement { border-top: 1px solid #d7dfd9; padding: .7rem 0; }
-    h4 { margin-bottom: .4rem; } blockquote { margin: .6rem 0; padding-left: 1rem; border-left: 3px solid #749883; white-space: pre-wrap; }
-  `,
+  styleUrl: './job-offer-preview.component.scss',
 })
 export class JobOfferPreviewComponent {
   readonly extraction = input.required<Extraction | CurrentExtraction>();
+  readonly groups = computed(() => groupRequirements<Requirement | CurrentRequirement>(this.extraction().requirements));
+  readonly openCategories = new Set<string>();
+  toggleCategory(category: string): void {
+    if (this.openCategories.has(category)) this.openCategories.delete(category);
+    else this.openCategories.add(category);
+  }
   readonly present = (value: string | null) => value !== null && value !== '';
   label(value: string): string { return labels[value] ?? value; }
 }

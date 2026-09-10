@@ -40,6 +40,52 @@ describe('Job offer review', () => {
   function button(text: string): HTMLButtonElement {
     return [...fixture.nativeElement.querySelectorAll('button')].find(b => (b as HTMLButtonElement).textContent?.includes(text)) as HTMLButtonElement;
   }
+  it('toggles categories without losing field values or validation', async () => {
+    const toggle = fixture.nativeElement.querySelector('.category-toggle') as HTMLButtonElement;
+    const content = fixture.nativeElement.querySelector('.category-content') as HTMLElement;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(content.hidden).toBe(true);
+    toggle.click(); fixture.detectChanges();
+    await input('canonicalLabel', '');
+    toggle.click(); fixture.detectChanges();
+    expect(content.hidden).toBe(true);
+    expect((fixture.nativeElement.querySelector('#review-save') as HTMLButtonElement).disabled).toBe(true);
+    expect(fixture.componentInstance.draft!.requirements[0].canonicalLabel).toBe('');
+  });
+
+  it('opens a category on navigation and moves edits into their new category', async () => {
+    fixture.componentInstance.goToRequirement(0);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.category-content').hidden).toBe(false);
+    const select = fixture.nativeElement.querySelector('[name="category"]') as HTMLSelectElement;
+    select.value = 'EXPERIENCE'; select.dispatchEvent(new Event('change'));
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.category-toggle').textContent).toContain('Expérience');
+    expect(fixture.nativeElement.querySelector('.category-content').hidden).toBe(false);
+    await input('canonicalLabel', 'Expérience Java');
+    fixture.componentInstance.save();
+    expect(service.review.mock.calls[0][1].extraction.requirements[0]).toMatchObject({ category: 'EXPERIENCE', canonicalLabel: 'Expérience Java', rawText: 'Java required.' });
+  });
+
+  it('follows grouped display order and opens the next category', async () => {
+    const component = fixture.componentInstance;
+    const first = component.draft!.requirements[0];
+    component.draft!.requirements.push({ ...first, id: 'experience', category: 'EXPERIENCE' }, { ...first, id: 'second-skill' });
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges(); await fixture.whenStable();
+    component.completeRequirement(first, 0);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(component.activeRequirement()).toBe(2);
+    component.completeRequirement(component.draft!.requirements[2], 2);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(component.activeRequirement()).toBe(1);
+    expect(component.openCategories.has('EXPERIENCE')).toBe(true);
+    button('Ajouter une exigence').click();
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    expect(component.openCategories.has('OTHER')).toBe(true);
+    expect((fixture.nativeElement.querySelector('#review-save') as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it('shows the intact original, citation, status and a calm bypass warning', () => {
     expect(fixture.nativeElement.querySelector('pre').textContent).toBe(saved.originalText);
     expect(fixture.nativeElement.querySelector('blockquote').textContent).toBe('Java required.');
@@ -52,7 +98,7 @@ describe('Job offer review', () => {
     await input('canonicalLabel', 'Java platform');
     expect(fixture.nativeElement.textContent).toContain('Modifications en attente');
     expect(button('Continuer sans vérifier').disabled).toBe(true);
-    button('Enregistrer les corrections').click();
+    button('Valider les corrections').click();
     const command = service.review.mock.calls[0][1];
     expect(command.extraction.company).toBe('Corrected synthetic company');
     expect(command.extraction.requirements[0].canonicalLabel).toBe('Java platform');
@@ -62,7 +108,7 @@ describe('Job offer review', () => {
     expect(fixture.componentInstance.dirty()).toBe(false);
   });
   it('confirms unchanged analysis and shows the reviewed badge', () => {
-    button('Confirmer l’analyse').click();
+    button('Valider l’offre').click();
     expect(service.review).toHaveBeenCalledWith(saved.id, { action: 'SAVE', extraction: saved.extraction });
     result.next({ ...saved, reviewStatus: 'CONFIRMED' }); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Analyse vérifiée');
@@ -92,12 +138,12 @@ describe('Job offer review', () => {
   });
   it('preserves unsaved edits on API error and allows retry', async () => {
     await input('company', 'Keep my edits');
-    button('Enregistrer les corrections').click();
+    button('Valider les corrections').click();
     result.error({ error: { fieldErrors: { company: 'Synthetic validation failure' } } }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[name="company"]').value).toBe('Keep my edits');
     expect(fixture.nativeElement.textContent).toContain('Synthetic validation failure');
     expect(fixture.componentInstance.dirty()).toBe(true);
-    expect(button('Enregistrer les corrections').disabled).toBe(false);
+    expect(button('Valider les corrections').disabled).toBe(false);
   });
   it('warns before leaving with unsaved changes', async () => {
     await input('company', 'Unsaved');
@@ -122,7 +168,7 @@ describe('Job offer review', () => {
     expect(fixture.componentInstance.activeRequirement()).toBe(1);
     expect(fixture.componentInstance.checked.size).toBe(1);
     expect(service.review).not.toHaveBeenCalled();
-    expect(button('Enregistrer les corrections').disabled).toBe(true);
+    expect(button('Valider les corrections').disabled).toBe(true);
     fixture.componentInstance.goToRequirement(0); fixture.detectChanges(); await fixture.whenStable();
     expect(fixture.nativeElement.querySelector('#requirement-content-0').hidden).toBe(false);
     expect(fixture.nativeElement.querySelector('[name="canonicalLabel"]').value).toBe('Corrected Java');
@@ -140,7 +186,7 @@ describe('Job offer review', () => {
     fixture.detectChanges(); await fixture.whenStable();
     expect(fixture.componentInstance.activeRequirement()).toBe(29);
     expect(fixture.nativeElement.querySelector('#requirement-content-29').hidden).toBe(false);
-    expect(button('Confirmer l’analyse').disabled).toBe(false);
+    expect(button('Valider l’offre').disabled).toBe(false);
   });
 
 });

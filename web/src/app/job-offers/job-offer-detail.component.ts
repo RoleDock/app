@@ -9,9 +9,8 @@ import { JobOfferPreviewComponent } from './job-offer-preview.component';
   selector: 'app-job-offer-detail',
   imports: [RouterLink, JobOfferPreviewComponent],
   template: `
-    <header class="app-header"><a class="brand" routerLink="/profile">RoleDock</a><a class="secondary" routerLink="/job-offers/new">Nouvelle offre</a></header>
     <main class="page-shell">
-      <div class="page-heading"><div><p class="eyebrow">Votre espace candidature</p><h1>Offre enregistrée en brouillon</h1></div></div>
+      <div class="page-heading"><div><p class="eyebrow">Votre espace candidature</p><h1>Votre offre d’emploi</h1></div></div>
       @if (loading()) { <p role="status">Chargement…</p> }
       @if (error()) { <p role="alert">Impossible de charger cette offre. Vérifiez le lien et la disponibilité du serveur.</p><button class="secondary" (click)="load()">Réessayer</button> }
       @if (offer(); as saved) {

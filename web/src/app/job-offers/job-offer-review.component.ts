@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrentExtraction, CurrentRequirement, JobOffer, ReviewCommand, reviewLabel } from './job-offer.models';
 import { JobOfferService } from './job-offer.service';
+import { groupRequirements } from './requirement-groups';
 import { labels } from './job-offer-preview.component';
 
 @Component({
@@ -14,6 +15,21 @@ import { labels } from './job-offer-preview.component';
 })
 export class JobOfferReviewComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly openCategories = new Set<string>();
+  requirementGroups() { return groupRequirements(this.draft?.requirements ?? []); }
+  toggleCategory(category: string): void {
+    if (this.openCategories.has(category)) this.openCategories.delete(category);
+    else this.openCategories.add(category);
+  }
+  changeCategory(requirement: CurrentRequirement, category: CurrentRequirement['category']): void {
+    requirement.category = category;
+    this.checked.delete(requirement);
+    this.goToRequirement(this.draft?.requirements.indexOf(requirement) ?? -1);
+  }
+  adjacentRequirement(index: number, direction: number): number {
+    const order = this.requirementGroups().flatMap(group => group.entries.map(entry => entry.index));
+    return order[order.indexOf(index) + direction] ?? -1;
+  }
   readonly collapsed = new Set<CurrentRequirement>();
   readonly checked = new Set<CurrentRequirement>();
   readonly activeRequirement = signal(-1);
@@ -25,6 +41,7 @@ export class JobOfferReviewComponent {
   goToRequirement(index: number): void {
     const requirement = this.draft?.requirements[index];
     if (!requirement) return;
+    this.openCategories.add(requirement.category);
     this.activeRequirement.set(index);
     this.collapsed.delete(requirement);
     setTimeout(() => this.goToSection('requirement-' + index));
@@ -32,7 +49,8 @@ export class JobOfferReviewComponent {
   completeRequirement(requirement: CurrentRequirement, index: number): void {
     this.checked.add(requirement);
     this.collapsed.add(requirement);
-    if (index + 1 < (this.draft?.requirements.length ?? 0)) this.goToRequirement(index + 1);
+    const next = this.adjacentRequirement(index, 1);
+    if (next !== -1) this.goToRequirement(next);
     else this.goToSection('review-save');
   }
   removeRequirement(index: number): void {

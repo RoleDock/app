@@ -1,0 +1,40 @@
+// Shared page geometry: keep navigation, content and fixed actions aligned.
+:root {
+  --page-background: #e9eeea;
+  --page-max-width: 100rem;
+  --page-gutter: clamp(1rem, 2.5vw, 3rem);
+  --page-inset: max(var(--page-gutter), calc((100% - var(--page-max-width)) / 2));
+  --layout-gap: clamp(1rem, 2vw, 2rem);
+  --text-measure: 75ch;
+}
+
+app-profile, app-job-offer-review, app-job-offer-detail, app-new-job-offer {
+  .page-shell {
+    width: min(var(--page-max-width), calc(100% - 2 * var(--page-gutter)));
+    margin-inline: auto;
+    padding-block: 3.5rem 6rem;
+  }
+
+  p, blockquote, pre { max-width: var(--text-measure); }
+  p, blockquote, pre, label, h2, h3, h4, a { overflow-wrap: anywhere; }
+  textarea { max-width: var(--text-measure); display: block; }
+  fieldset, .fields > *, .inline-row > *, .page-heading > * { min-width: 0; }
+  .checkbox input { flex-shrink: 0; }
+  .form-actions, .section-heading, .repeatable-heading, .card-heading { flex-wrap: wrap; }
+
+  // Split only when both the source and structured content have room to breathe.
+  .split-layout { display: grid; gap: var(--layout-gap); align-items: start; }
+  .split-layout > * { min-width: 0; }
+  @media (min-width: 80rem) {
+    .split-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+  }
+  @media (max-width: 700px) {
+    .page-shell { padding-top: 2rem; }
+  }
+}
+
+app-profile .cards-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 32rem), 1fr));
+  align-items: start;
+}
+app-profile .cards-grid > .empty-list { grid-column: 1 / -1; }

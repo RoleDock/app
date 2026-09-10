@@ -1,6 +1,5 @@
-<header class="app-header"><a class="brand" routerLink="/profile">RoleDock</a><a class="secondary" routerLink="/profile">Mon profil</a></header>
 <main class="page-shell">
-  <div class="page-heading"><div><p class="eyebrow">Votre prochaine candidature</p><h1>Nouvelle offre d’emploi</h1><p>Collez l’annonce complète. RoleDock en extrait le poste, les missions et les exigences pour vous permettre de les vérifier.</p></div></div>
+  <div class="page-heading"><div><p class="eyebrow">Votre prochaine candidature</p><h1>Nouvelle offre d’emploi</h1><p>Collez l’annonce complète. RoleDock en extrait le poste, les missions et les exigences pour vous.</p></div></div>
   @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
   <form [formGroup]="form" (ngSubmit)="analyze()" novalidate class="form-section">
     <div class="section-heading"><div><span class="step">01</span><h2>Copier l’offre</h2></div></div>
@@ -11,21 +10,7 @@
     </div>
     <p id="offer-text-help" class="offer-text-help">{{ form.controls.originalText.value.length }} / 50 000 caractères · Le texte original sera conservé.</p>
     @if (submitted() && form.invalid) { <p class="field-error" role="alert">Saisissez une annonce non vide (50 000 caractères maximum) et, si renseignée, une URL HTTP(S) valide.</p> }
-    <div class="form-actions"><p>Vous pourrez corriger l’analyse avant de poursuivre.</p><button class="primary" type="submit" [disabled]="analyzing() || saving()">{{ analyzing() ? 'Analyse en cours…' : 'Analyser' }}</button></div>
-    @if (analyzing()) { <div class="analysis-progress" role="status"><span class="spinner" aria-hidden="true"></span><p>Analyse en cours… Les missions et les exigences sont en cours d’extraction.</p></div> }
+    <div class="form-actions"><p>Vous accéderez directement à l’analyse pour la corriger ou valider l’offre.</p><button class="primary" type="submit" [disabled]="analyzing() || saving()">{{ analyzing() ? 'Analyse en cours…' : saving() ? 'Ouverture de la correction…' : analysis() || saved() ? 'Réessayer d’ouvrir la correction' : 'Analyser l’offre' }}</button></div>
+    @if (analyzing() || saving()) { <div class="analysis-progress" role="status"><span class="spinner" aria-hidden="true"></span><p>{{ analyzing() ? 'Analyse en cours… Les missions et les exigences sont en cours d’extraction.' : 'Votre analyse est prête. Ouverture de la correction…' }}</p></div> }
   </form>
-  @if (analysis(); as result) {
-    <section class="form-section">
-      <div class="section-heading"><div><span class="step">02</span><h2>Analyse de l’offre</h2></div></div>
-      @if (!saved()) { <div class="form-actions preview-save"><p>Enregistrez ce brouillon pour ouvrir la correction détaillée.</p><button class="primary" type="button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer comme brouillon' }}</button></div> }
-      <p class="notice" role="status">Analyse automatique — vérification recommandée.</p>
-      <app-job-offer-preview [extraction]="result.extraction" />
-      @if (saved(); as offer) {
-        <p class="notice success" role="status">Brouillon enregistré avec succès.</p>
-        <a class="secondary" [routerLink]="['/job-offers', offer.id]">Ouvrir le brouillon enregistré</a>
-      } @else {
-        <button class="primary" type="button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer comme brouillon' }}</button>
-      }
-    </section>
-  }
 </main>

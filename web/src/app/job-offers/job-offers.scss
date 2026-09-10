@@ -1,7 +1,5 @@
 // Shared presentation for the offer workflow; Candidate Profile keeps its styling.
 app-job-offer-detail, app-job-offer-review, app-new-job-offer {
-  background: #e9eeea;
-
   .form-section, .state-card {
     border-color: #c5d1c9;
     box-shadow: 0 .3rem 1rem rgba(25, 50, 42, .07);
@@ -23,7 +21,6 @@ app-job-offer-detail, app-job-offer-review, app-new-job-offer {
   a.primary, a.primary:visited, a.primary:hover { color: #fff; }
   a.secondary, a.secondary:visited { color: #29463d; }
   .secondary:hover { background: #edf4f0; border-color: #547565; }
-  .app-header a:not(.brand) { padding: .55rem .8rem; }
   .offer-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.25rem 0; }
 
   .notice {
@@ -38,4 +35,13 @@ app-job-offer-detail, app-job-offer-review, app-new-job-offer {
   .review-toolbar { background: #e3eae5; border-top-color: #9eafa4; box-shadow: 0 -.3rem 1.2rem rgba(25, 50, 42, .14); }
   details { margin-top: 1.5rem; padding: 1rem; border: 1px solid #bdcbc1; border-radius: .65rem; background: #f0f4f1; }
   summary { cursor: pointer; color: #29463d; font-weight: 700; }
+
+  .requirement-category { margin-top: .85rem; border: 1px solid #cad9cf; border-radius: .7rem; overflow: hidden; background: #fbfcfb; }
+  .category-heading { margin: 0; }
+  .category-toggle { display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 3.5rem; padding: 1rem 1.15rem; text-align: left; background: #edf3ee; color: #244b36; font-size: 1rem; }
+  .category-toggle:hover { background: #e3eee6; }
+  .category-toggle:focus-visible { outline-offset: -3px; }
+  .category-count { padding: .15rem .5rem; border-radius: 1rem; background: #dce9e0; font-size: .8rem; }
+  .category-chevron { margin-left: auto; font-size: 1.2rem; }
+  .category-content { padding: clamp(.65rem, 1.5vw, 1.15rem); border-top: 1px solid #d5e0d8; }
 }
