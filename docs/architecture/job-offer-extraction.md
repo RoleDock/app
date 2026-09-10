@@ -211,9 +211,54 @@ The Angular page `/job-offers/new` presents the proposal and allows Save without
 review. It preserves input on extraction/persistence failures, disables concurrent
 actions and invalidates the preview when input changes. Successful Save opens
 `/job-offers/{id}`, which fetches the persisted draft again on reload.
-Both views show “Analyse automatique — vérification recommandée.”
+New drafts show “Analyse automatique — vérification recommandée.”
 
 Original text, initial validated extraction snapshot, current values and review
 state are distinct; see [the persistence model](data-model.md).
-No confirmation, corrections, skip-review decision, profile access or matching
-is implemented.
+## Human review of persisted offers
+
+`/job-offers/{id}/review` displays the original advertisement alongside editable
+current values. It reuses Candidate Profile layout, cards, controls and feedback
+styles. Missions and requirements can be edited, added or removed in order.
+Original quotations are read-only; manual requirements explicitly display their
+user provenance. Navigation and browser-close warnings protect unsaved changes.
+A fixed bottom toolbar keeps global saving and direct section/requirement jumps
+available throughout long reviews. Checking a requirement collapses its card and
+opens the next one. These session-only progress markers do not persist individual
+review statuses; the global save still confirms or corrects the aggregate. Hidden
+cards retain their values and form validation.
+API failures preserve the draft. Confirmation submits all displayed values, so it
+cannot silently discard pending corrections.
+
+`PUT /api/job-offers/{id}/review` accepts one explicit command:
+
+- `{"action":"SAVE","extraction":{...}}`: a complete current extraction, including
+  requirement UUIDs and provenance from GET. New requirements use null `id`,
+  `USER_ADDED` source and null `rawText`/`extractionConfidence`. The server validates
+  enums, required values, blocker/constraint consistency, requirement ownership,
+  duplicate IDs and immutable provenance before applying changes. No change sets
+  `CONFIRMED`; a structured change sets `CORRECTED`. Reconfirming a corrected
+  extraction keeps `CORRECTED`.
+- `{"action":"BYPASS"}`: allowed only while `UNREVIEWED`, with no extraction
+  payload. It sets `reviewBypassedAt` once and leaves the status `UNREVIEWED`.
+  The UI shows a concise inline warning and continues to the saved offer with
+  “Analyse automatique — non vérifiée”. Bypass cannot discard pending edits.
+
+Reviewed labels are “Analyse vérifiée” and “Analyse vérifiée et corrigée”. They
+refer to the extraction review, not the advertisement's objective accuracy.
+Later review overrides bypass in the UI while retaining its timestamp.
+
+The saved-offer DTO now uses a separate current extraction projection, with
+requirement `id` and `source` fields and nullable manual citation/confidence.
+The analyze/extract DTOs, strict provider schema and runtime prompt v4 are unchanged.
+The service has no extractor dependency. One transaction and a parent-row lock
+protect the complete update; removed requirements are deleted, retained UUIDs
+survive edits/reordering, and intermediate order changes avoid unique collisions.
+Unknown offers return 404, invalid commands 400, and bypass of reviewed data 409.
+Original advertisement and initial extraction snapshot are never replaced.
+
+No profile access, matching or scoring is implemented. Future matching must use
+`reviewStatus` as the authority: `UNREVIEWED` data may continue with a warning, but
+cannot alone justify definitive elimination. A blocker from unreviewed extraction
+requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`, even after explicit bypass.
+This is a documented future rule, not a scoring implementation.

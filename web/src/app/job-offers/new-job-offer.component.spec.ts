@@ -80,7 +80,7 @@ describe('New job offer', () => {
     expect(text()).toContain('Enregistrement…');
     save$.next({
       id: 'saved-id', originalText: '  Java requis\n', sourceUrl: null,
-      analyzedAt: result.analyzedAt, reviewStatus: 'UNREVIEWED', extraction: result.extraction,
+      analyzedAt: result.analyzedAt, reviewStatus: 'UNREVIEWED', reviewBypassedAt: null, extraction: { ...result.extraction, requirements: result.extraction.requirements.map(r => ({ ...r, id: 'requirement-id', source: 'LLM_EXTRACTED' })) },
     });
     fixture.detectChanges();
     expect(text()).toContain('Brouillon enregistré avec succès');

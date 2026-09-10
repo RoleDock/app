@@ -25,6 +25,13 @@ describe('JobOfferService', () => {
     expect(req.request.body).toEqual({ analysisId: 'analysis-id' });
     req.flush({});
   });
+  it('sends an explicit review command', () => {
+    service.review('saved-id', { action: 'BYPASS' }).subscribe();
+    const req = http.expectOne('/api/job-offers/saved-id/review');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ action: 'BYPASS' });
+    req.flush({});
+  });
   it('retrieves the persisted offer by URL identifier', () => {
     service.get('saved-id').subscribe();
     const req = http.expectOne('/api/job-offers/saved-id');

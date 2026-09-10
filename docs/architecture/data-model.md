@@ -109,9 +109,11 @@ Three representations remain deliberately distinct:
 - Current structured columns and children initially equal the snapshot and can
   later be corrected independently.
 
-`review_status` defaults to `UNREVIEWED`. `CONFIRMED` means a future user review
-accepted the proposal; `CORRECTED` means a future review changed structured values.
-Only UNREVIEWED is created by the current API, which has no review-update operation.
+`review_status` defaults to `UNREVIEWED`. An explicit review without changes sets
+`CONFIRMED`; changing persisted structured values sets `CORRECTED`. Reconfirming
+corrected data keeps `CORRECTED`. Nullable `review_bypassed_at` records an explicit
+choice to continue without review; it does not change `UNREVIEWED`. Later review
+takes precedence over that timestamp, which remains as provenance.
 Draft describes this saved offer; it is not an application-tracking status.
 
 ### `JobRequirement`
@@ -119,13 +121,21 @@ Draft describes this saved offer; it is not an application-tracking status.
 Implemented in `job_requirement`: UUID, offer FK, order, raw quotation, canonical
 label, category, requirement kind, centrality, explicitness, potential hard-blocker
 flag and optional condition, optional constraint operator/value/unit, extraction
-confidence. Enums retain the existing extraction contract names. No candidate
-evidence, matching or scoring fields are stored.
+confidence. Enums retain the existing extraction contract names. Requirements expose stable UUIDs and a `source`: `LLM_EXTRACTED` (the default for
+existing rows) or `USER_ADDED`. Extracted quotations and extraction confidence are
+preserved across edits. Manual requirements have null quotation and confidence;
+the product never fabricates an LLM citation for them. No candidate evidence,
+matching or scoring fields are stored.
 
 Liquibase migration `0003-job-offers.sql` adds these three tables. Foreign keys,
 ordering uniqueness, review-state and onsite-day bounds, and constraint/blocker
 consistency protect stored invariants. JSON is portable TEXT because the initial
 snapshot is read as a whole, not queried.
+
+Additive migration `0004-job-offer-review.sql` adds the bypass timestamp and
+requirement source, allows null raw text/confidence for manual requirements only,
+and enforces that provenance distinction with a database constraint. Migration
+0003 and earlier migrations remain unchanged.
 
 The following analysis/matching entities remain conceptual and unimplemented.
 

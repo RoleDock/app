@@ -1,0 +1,90 @@
+<header class="app-header"><a class="brand" routerLink="/profile">RoleDock</a><a class="secondary" routerLink="/job-offers/new">Nouvelle offre</a></header>
+<main class="page-shell">
+  <div class="page-heading"><div><p class="eyebrow">Votre espace candidature</p><h1>Vérifier l’analyse</h1><p>Comparez l’analyse à l’annonce et ajustez ce qui doit l’être. Vous pouvez aussi la vérifier plus tard.</p></div></div>
+  @if (loading()) { <div class="state-card" role="status"><span class="spinner"></span><p>Chargement de l’offre…</p></div> }
+  @if (error()) { <div id="review-error" tabindex="-1" class="notice error" role="alert">{{ error() }}<ul>@for (message of fieldErrors(); track $index) { <li>{{ message }}</li> }</ul>@if (!offer()) { <button class="secondary" (click)="load()">Réessayer</button> }</div> }
+  @if (offer(); as saved) {
+    <p class="notice" [class.success]="saved.reviewStatus !== 'UNREVIEWED'" role="status">{{ reviewLabel(saved) }}</p>
+    @if (success()) { <p class="notice success" role="status">Vérification enregistrée.</p> }
+    <div class="offer-actions"><a class="secondary" [routerLink]="['/job-offers', saved.id]">← Retour à l’offre</a></div>
+    <div class="review-layout">
+      <section class="form-section original"><div class="section-heading"><h2>Annonce originale</h2></div>
+        @if (saved.sourceUrl) { <p><a class="secondary" [href]="saved.sourceUrl" target="_blank" rel="noopener noreferrer">Voir la source</a></p> }
+        <pre>{{ saved.originalText }}</pre>
+      </section>
+      @if (draft; as data) {
+        <form #reviewForm="ngForm" (ngSubmit)="save()">
+          <fieldset [disabled]="saving()">
+            <section id="review-position" tabindex="-1" class="form-section"><div class="section-heading"><div><span class="step">01</span><h2>Le poste</h2></div></div>
+              <div class="fields two-columns">
+                <label>Entreprise<input name="company" [(ngModel)]="data.company" /></label>
+                <label>Poste<input name="position" [(ngModel)]="data.position" /></label>
+                <label>Ville<input name="city" [(ngModel)]="data.location.city" /></label>
+                <label>Région<input name="region" [(ngModel)]="data.location.region" /></label>
+                <label>Pays<input name="country" [(ngModel)]="data.location.country" /></label>
+                <label>Contrat<select name="contract" [(ngModel)]="data.contractType">@for (value of contracts; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                <label>Organisation du travail<select name="arrangement" [(ngModel)]="data.workArrangement.type">@for (value of arrangements; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                <label>Zone de télétravail<input name="remoteArea" [(ngModel)]="data.workArrangement.remoteArea" /></label>
+                <label>Jours sur site / semaine<input name="days" type="number" min="0" max="7" step="1" [(ngModel)]="data.workArrangement.onSiteDaysPerWeek" /></label>
+                <label class="wide">Résumé<textarea name="summary" rows="4" [(ngModel)]="data.summary"></textarea></label>
+              </div>
+            </section>
+            <section id="review-missions" tabindex="-1" class="form-section"><div class="section-heading"><div><span class="step">02</span><h2>Missions</h2></div><button type="button" class="add" (click)="data.missions.push('')">+ Ajouter une mission</button></div>
+              <div class="compact-list">@for (mission of data.missions; track $index; let i = $index) { <div class="inline-row"><label class="mission-field">Mission {{ i + 1 }}<textarea [name]="'mission-' + i" [attr.name]="'mission-' + i" rows="2" required [(ngModel)]="data.missions[i]"></textarea></label><button type="button" class="remove" (click)="data.missions.splice(i, 1)">Supprimer la mission {{ i + 1 }}</button></div> } @empty { <p class="empty-list">Aucune mission.</p> }</div>
+            </section>
+            <section class="form-section"><div class="section-heading"><div><span class="step">03</span><h2>Exigences</h2></div><button type="button" class="add" (click)="addRequirement()">+ Ajouter une exigence</button></div>
+              <div class="cards-list">@for (r of data.requirements; track r; let i = $index) {
+                <article class="item-card requirement-card" [id]="'requirement-' + i" tabindex="-1" [ngModelGroup]="'requirement-' + i" #requirementGroup="ngModelGroup" (input)="checked.delete(r)" (change)="checked.delete(r)">
+
+                  <div class="card-heading"><h3><button class="requirement-toggle" type="button" [attr.aria-expanded]="!collapsed.has(r)" [attr.aria-controls]="'requirement-content-' + i" (click)="toggleRequirement(r)"><span>Exigence {{ i + 1 }} · {{ r.canonicalLabel || 'À compléter' }}</span><span aria-hidden="true">{{ collapsed.has(r) ? '+' : '−' }}</span></button></h3><button type="button" class="remove" (click)="removeRequirement(i)">Supprimer l’exigence {{ i + 1 }}</button></div>
+                  @if (checked.has(r)) { <p class="requirement-done">Vérifiée dans cette session</p> }
+                  <div [id]="'requirement-content-' + i" [hidden]="collapsed.has(r)">
+                  @if (r.source === 'USER_ADDED') { <p class="section-help provenance">Ajoutée par vous — sans citation automatique</p> } @else { <blockquote>{{ r.rawText }}</blockquote> }
+                  <div class="fields two-columns">
+                    <label class="wide">Libellé<input name="canonicalLabel" required [(ngModel)]="r.canonicalLabel" /></label>
+                    <label>Catégorie<select name="category" [(ngModel)]="r.category">@for (value of categories; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                    <label>Niveau d’exigence<select name="kind" [(ngModel)]="r.requirementKind">@for (value of kinds; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                    <label>Importance<select name="centrality" [(ngModel)]="r.centrality">@for (value of centralities; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                    <label>Formulation<select name="explicitness" [(ngModel)]="r.explicitness"><option value="EXPLICIT">Explicite</option><option value="INFERRED">Interprétée</option></select></label>
+                    <label class="checkbox wide"><input type="checkbox" name="blocker" [(ngModel)]="r.hardBlockerCandidate" (ngModelChange)="!$event && (r.blockerCondition = null)" />Condition potentiellement bloquante</label>
+                    @if (r.hardBlockerCandidate) { <label class="wide">Condition bloquante<textarea name="blockerCondition" required rows="2" [(ngModel)]="r.blockerCondition"></textarea></label> }
+                    <label class="checkbox wide"><input type="checkbox" name="hasConstraint" [ngModel]="r.constraint !== null" (ngModelChange)="r.constraint = $event ? { operator: 'AT_LEAST', value: '', unit: null } : null" />Contrainte précisée</label>
+                    @if (r.constraint; as constraint) {
+                      <label>Opérateur<select name="operator" [(ngModel)]="constraint.operator">@for (value of operators; track value) { <option [value]="value">{{ label(value) }}</option> }</select></label>
+                      <label>Valeur<input name="value" required [(ngModel)]="constraint.value" /></label>
+                      <label>Unité<input name="unit" [(ngModel)]="constraint.unit" /></label>
+                    }
+                  </div>
+                  <div class="requirement-actions">
+                    @if (i > 0) { <button type="button" class="secondary" (click)="goToRequirement(i - 1)">Précédente</button> }
+                    <button type="button" class="add" [disabled]="requirementGroup.invalid" (click)="completeRequirement(r, i)">{{ i + 1 < data.requirements.length ? 'Vérifier et passer à la suivante' : 'Vérifier et terminer' }}</button>
+                  </div>
+                  </div>
+                </article>
+              } @empty { <p class="empty-list">Aucune exigence.</p> }</div>
+            </section>
+            <div class="review-toolbar">
+              <nav aria-label="Navigation dans l’analyse">
+                <button type="button" class="secondary" (click)="goToSection('review-position')">Poste</button>
+                <button type="button" class="secondary" (click)="goToSection('review-missions')">Missions</button>
+                <label class="requirement-jump"><span class="sr-only">Aller à une exigence</span><select aria-label="Aller à une exigence" [ngModel]="activeRequirement()" [ngModelOptions]="{standalone: true}" (ngModelChange)="goToRequirement(+$event)"><option [ngValue]="-1">Exigences ({{ data.requirements.length }})</option>@for (r of data.requirements; track r; let i = $index) { <option [ngValue]="i">{{ checked.has(r) ? '✓ ' : '' }}{{ i + 1 }} · {{ r.canonicalLabel || 'À compléter' }}</option> }</select></label>
+              </nav>
+              <div class="save-feedback" aria-live="polite">
+                @if (error()) { <button type="button" class="remove" (click)="goToSection('review-error')">Échec de l’enregistrement · voir les erreurs</button> }
+                @else if (success() && !dirty()) { <span>Vérification enregistrée.</span> }
+                @else { <span>{{ checked.size }} / {{ data.requirements.length }} exigences parcourues · {{ dirty() ? 'Modifications en attente d’enregistrement.' : 'Enregistrement global requis' }}</span> }
+              </div>
+              <button id="review-save" type="submit" class="primary" [disabled]="saving() || reviewForm.invalid">{{ saving() ? 'Enregistrement…' : dirty() ? 'Enregistrer les corrections' : 'Confirmer l’analyse' }}</button>
+            </div>
+            @if (saved.reviewStatus === 'UNREVIEWED') {
+              <div class="notice"><p id="bypass-warning">L’analyse a été générée automatiquement et peut contenir des erreurs. Vous pouvez continuer maintenant et la vérifier plus tard.</p>
+                @if (dirty()) { <p>Enregistrez vos corrections avant de continuer.</p> }
+                <button type="button" class="secondary" aria-describedby="bypass-warning" [disabled]="saving() || dirty()" (click)="bypass()">Continuer sans vérifier</button>
+              </div>
+            }
+          </fieldset>
+        </form>
+      }
+    </div>
+  }
+</main>
