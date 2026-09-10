@@ -1,0 +1,1 @@
+Atelier Exemple recrute un développeur Java / SpringBoot / Angular à Lyon, France, en CDI. Vous développerez des API et des interfaces. Java, SpringBoot et Angular sont requis. Postgres est apprécié. Présence obligatoire à Lyon 2 jours par semaine, télétravail le reste du temps.

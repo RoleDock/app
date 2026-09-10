@@ -1,0 +1,247 @@
+{
+  "type": "object",
+  "properties": {
+    "company": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "position": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "city",
+        "region",
+        "country"
+      ],
+      "additionalProperties": false
+    },
+    "workArrangement": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ONSITE",
+            "HYBRID",
+            "REMOTE",
+            "UNKNOWN"
+          ]
+        },
+        "remoteArea": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "onSiteDaysPerWeek": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 7
+        }
+      },
+      "required": [
+        "type",
+        "remoteArea",
+        "onSiteDaysPerWeek"
+      ],
+      "additionalProperties": false
+    },
+    "contractType": {
+      "type": "string",
+      "enum": [
+        "PERMANENT",
+        "FIXED_TERM",
+        "FREELANCE",
+        "INTERNSHIP",
+        "APPRENTICESHIP",
+        "TEMPORARY",
+        "OTHER",
+        "UNKNOWN"
+      ]
+    },
+    "sourceLanguage": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "missions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rawText": {
+            "type": "string"
+          },
+          "canonicalLabel": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "TECH_SKILL",
+              "EXPERIENCE",
+              "DOMAIN_KNOWLEDGE",
+              "TITLE_LEVEL",
+              "EDUCATION",
+              "CERTIFICATION",
+              "LOCATION",
+              "WORK_AUTHORIZATION",
+              "LANGUAGE",
+              "AVAILABILITY",
+              "CONTRACT",
+              "SOFT_SKILL",
+              "OTHER"
+            ]
+          },
+          "requirementKind": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "PREFERRED",
+              "CONTEXTUAL",
+              "UNKNOWN"
+            ]
+          },
+          "centrality": {
+            "type": "string",
+            "enum": [
+              "CORE",
+              "SUPPORTING",
+              "INCIDENTAL",
+              "UNKNOWN"
+            ]
+          },
+          "explicitness": {
+            "type": "string",
+            "enum": [
+              "EXPLICIT",
+              "INFERRED"
+            ]
+          },
+          "hardBlockerCandidate": {
+            "type": "boolean"
+          },
+          "blockerCondition": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "constraint": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "operator": {
+                    "type": "string",
+                    "enum": [
+                      "AT_LEAST",
+                      "AT_MOST",
+                      "EQUALS",
+                      "RANGE",
+                      "OTHER"
+                    ]
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "operator",
+                  "value",
+                  "unit"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "extractionConfidence": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          }
+        },
+        "required": [
+          "rawText",
+          "canonicalLabel",
+          "category",
+          "requirementKind",
+          "centrality",
+          "explicitness",
+          "hardBlockerCandidate",
+          "blockerCondition",
+          "constraint",
+          "extractionConfidence"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "company",
+    "position",
+    "location",
+    "workArrangement",
+    "contractType",
+    "sourceLanguage",
+    "summary",
+    "missions",
+    "requirements"
+  ],
+  "additionalProperties": false
+}

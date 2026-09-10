@@ -1,0 +1,19 @@
+{
+  "company": null,
+  "position": null,
+  "location": {
+    "city": null,
+    "region": null,
+    "country": null
+  },
+  "workArrangement": {
+    "type": "UNKNOWN",
+    "remoteArea": null,
+    "onSiteDaysPerWeek": null
+  },
+  "contractType": "UNKNOWN",
+  "sourceLanguage": null,
+  "summary": null,
+  "missions": [],
+  "requirements": []
+}

@@ -1,0 +1,48 @@
+{
+  "archivedAtUtc": "2026-09-08T14:58:06.330188+02:00",
+  "activePromptPath": "backend/src/main/resources/job-offer-extraction/instructions.txt",
+  "activeDiskVersionAtArchive": "v1",
+  "historicalRunsVersionVerified": false,
+  "versions": [
+    {
+      "version": "v1",
+      "statusAtArchive": "BASELINE_SNAPSHOT",
+      "file": "v1.txt",
+      "sha256": "1179ba80bb639fe30c2b9dfd26461094caed77bf661279898d258b8afebd3c1a",
+      "sha256Utf8Lf": "1179ba80bb639fe30c2b9dfd26461094caed77bf661279898d258b8afebd3c1a",
+      "bytes": 2834
+    },
+    {
+      "version": "v2",
+      "statusAtArchive": "PROPOSED_NOT_ACTIVATED_OR_EVALUATED",
+      "file": "v2.txt",
+      "sha256": "ef5df5d32e701b9f0919fb8a3b8f52af2df37869b744e21d10bd70790c73ce17",
+      "sha256Utf8Lf": "ef5df5d32e701b9f0919fb8a3b8f52af2df37869b744e21d10bd70790c73ce17",
+      "bytes": 8269
+    },
+    {
+      "version": "v3",
+      "statusAtArchive": "PROPOSED_NOT_ACTIVATED_OR_EVALUATED",
+      "archivedAtUtc": "2026-09-08T18:19:00.7003534Z",
+      "file": "v3.txt",
+      "sha256": "3124a0f7b783a8b5a0791aaa15e63c7e9626c6af24ee52e521459d4deb1e3ae4",
+      "sha256Utf8Lf": "3124a0f7b783a8b5a0791aaa15e63c7e9626c6af24ee52e521459d4deb1e3ae4",
+      "bytes": 11241
+    },
+    {
+      "version": "v4",
+      "statusAtArchive": "PROPOSED_NOT_ACTIVATED_OR_EVALUATED",
+      "archivedAtUtc": "2026-09-08T18:58:26.8917325Z",
+      "file": "v4.txt",
+      "sha256": "f8af57a5b5d66b2c3cafb6fc515a8d8da695151eeb8b272b5cd1a2b832f441d0",
+      "sha256Utf8Lf": "f8af57a5b5d66b2c3cafb6fc515a8d8da695151eeb8b272b5cd1a2b832f441d0",
+      "bytes": 13975
+    }
+  ],
+  "schema": {
+    "file": "schema-v1.json",
+    "sha256": "cef8eff060b429172441e5384754c01d69e162e446285c76d3c881663dc99172",
+    "sha256Utf8Lf": "cef8eff060b429172441e5384754c01d69e162e446285c76d3c881663dc99172",
+    "bytes": 5150
+  }
+}

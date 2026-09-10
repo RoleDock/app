@@ -1,0 +1,1 @@
+Chez Exemple Plateforme, notre environnement comprend Java, Python, Go, React, Angular, AWS, Azure, Docker, Kubernetes, Kafka et Redis. Pour ce poste, Python est obligatoire. Docker est apprécié. Les autres outils peuvent être appris sur place. Mission : automatiser les déploiements.
