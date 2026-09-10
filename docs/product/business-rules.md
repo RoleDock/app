@@ -17,6 +17,18 @@ Requirements extracted from an offer must distinguish:
 Missing information remains unknown. Unknown information must not be silently
 converted into false or inferred facts.
 
+Automatic extraction is a proposal. A candidate may save it as a draft without
+review; the product displays “Analyse automatique — vérification recommandée.”
+New drafts are `UNREVIEWED`. Future explicit acceptance can set `CONFIRMED`;
+future correction can set `CORRECTED`. This slice exposes no review-state changes.
+No extra skip state or boolean is introduced: the intentional skip workflow and
+its decision semantics belong to the next feature.
+
+The original advertisement remains intact, the initial validated extraction is
+retained separately, and current structured values can evolve later without
+overwriting either source. Saving a proposal does not make it authoritative and
+does not perform candidate matching or scoring.
+
 ## Compatibility
 
 Each meaningful requirement should be comparable with the candidate profile.

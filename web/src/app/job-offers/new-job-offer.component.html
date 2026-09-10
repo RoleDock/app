@@ -1,0 +1,25 @@
+<header class="app-header"><a class="brand" routerLink="/profile">RoleDock</a><a routerLink="/profile">Mon profil</a></header>
+<main class="page-shell">
+  <h1>Nouvelle offre d’emploi</h1>
+  <p>Collez une annonce pour en conserver une version structurée.</p>
+  @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
+  <form [formGroup]="form" (ngSubmit)="analyze()" novalidate class="form-section">
+    <label>URL source (facultative)<input type="url" formControlName="sourceUrl" maxlength="2000" /></label>
+    <label>Annonce originale<textarea formControlName="originalText" rows="14" maxlength="50000"></textarea></label>
+    @if (submitted() && form.invalid) { <p role="alert">Saisissez une annonce non vide (50 000 caractères maximum) et, si renseignée, une URL HTTP(S) valide.</p> }
+    <button class="primary" type="submit" [disabled]="analyzing() || saving()">{{ analyzing() ? 'Analyse en cours…' : 'Analyser' }}</button>
+    @if (analyzing()) { <p role="status">Analyse en cours…</p> }
+  </form>
+  @if (analysis(); as result) {
+    <section class="form-section">
+      <p class="notice" role="status">Analyse automatique — vérification recommandée.</p>
+      <app-job-offer-preview [extraction]="result.extraction" />
+      @if (saved(); as offer) {
+        <p class="notice success" role="status">Brouillon enregistré avec succès.</p>
+        <a [routerLink]="['/job-offers', offer.id]">Ouvrir le brouillon enregistré</a>
+      } @else {
+        <button class="primary" type="button" (click)="save()" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer comme brouillon' }}</button>
+      }
+    </section>
+  }
+</main>
