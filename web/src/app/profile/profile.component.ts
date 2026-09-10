@@ -11,7 +11,6 @@ import {
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
-import { RouterLink } from '@angular/router';
 
 import {
   CandidateProfile,
@@ -95,7 +94,7 @@ const urlText = (value: string | null | undefined): TextControl => {
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {

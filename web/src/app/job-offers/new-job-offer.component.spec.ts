@@ -46,16 +46,22 @@ describe('New job offer', () => {
     expect(text()).toContain('annonce non vide');
   });
 
-  it('shows loading, preserves exact text and renders structured result and review notice', () => {
+  it('analyzes, automatically saves once and opens correction without an intermediate step', async () => {
     start();
     expect(text()).toContain('Analyse en cours');
     expect(service.analyze).toHaveBeenCalledWith('  Java requis\n', null);
-    expect(fixture.nativeElement.querySelector('textarea').disabled).toBe(true);
+    fixture.componentInstance.analyze();
+    expect(service.analyze).toHaveBeenCalledOnce();
     finish();
-    for (const value of ['Synthetic company', 'Engineer', 'Lyon', 'Hybride', 'Contrat permanent',
-      'Créer des API', 'Java requis', 'Requis', 'Central', 'Compétence technique', 'Analyse automatique — vérification recommandée']) {
-      expect(text()).toContain(value);
-    }
+    expect(service.save).toHaveBeenCalledExactlyOnceWith('analysis-id');
+    expect(text()).toContain('Ouverture de la correction');
+    expect(text()).not.toContain('brouillon');
+    expect(fixture.nativeElement.querySelector('textarea').disabled).toBe(true);
+    fixture.componentInstance.analyze();
+    expect(service.save).toHaveBeenCalledOnce();
+    saved();
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/job-offers', 'saved-id', 'review']);
   });
 
   it('preserves input after extraction error and allows retry without exposing diagnostics', () => {
@@ -64,6 +70,7 @@ describe('New job offer', () => {
     fixture.detectChanges();
     expect(text()).toContain('Votre saisie est conservée');
     expect(text()).not.toContain('provider secret');
+    expect(service.save).not.toHaveBeenCalled();
     expect(fixture.componentInstance.form.controls.originalText.value).toBe('  Java requis\n');
     analysis$ = new Subject<Analysis>();
     service.analyze.mockReturnValue(analysis$);
@@ -71,55 +78,68 @@ describe('New job offer', () => {
     expect(service.analyze).toHaveBeenCalledTimes(2);
   });
 
-  it('saves once while running and opens the persistent URL after success', () => {
+  it('retries persistence with the existing analysis after a failure', () => {
     start(); finish();
-    fixture.componentInstance.save();
-    fixture.componentInstance.save();
-    fixture.detectChanges();
-    expect(service.save).toHaveBeenCalledExactlyOnceWith('analysis-id');
-    expect(text()).toContain('Enregistrement…');
-    save$.next({
-      id: 'saved-id', originalText: '  Java requis\n', sourceUrl: null,
-      analyzedAt: result.analyzedAt, reviewStatus: 'UNREVIEWED', reviewBypassedAt: null, extraction: { ...result.extraction, requirements: result.extraction.requirements.map(r => ({ ...r, id: 'requirement-id', source: 'LLM_EXTRACTED' })) },
-    });
-    fixture.detectChanges();
-    expect(text()).toContain('Brouillon enregistré avec succès');
-    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/job-offers', 'saved-id']);
-    fixture.componentInstance.save();
-    expect(service.save).toHaveBeenCalledOnce();
-  });
-
-  it('retains text and preview after save failure and allows retry', () => {
-    start(); finish();
-    fixture.componentInstance.save();
     save$.error({ status: 500 });
     fixture.detectChanges();
     expect(text()).toContain('Votre saisie et le résultat sont conservés');
-    expect(text()).toContain('Java requis');
-    expect(fixture.componentInstance.form.controls.originalText.value).toBe('  Java requis\n');
+    expect(fixture.nativeElement.querySelector('textarea').disabled).toBe(false);
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
     save$ = new Subject<JobOffer>();
     service.save.mockReturnValue(save$);
-    fixture.componentInstance.save();
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
     expect(service.save).toHaveBeenCalledTimes(2);
+    expect(service.analyze).toHaveBeenCalledOnce();
   });
 
-  it('asks for reanalysis after expiry without discarding text', () => {
+  it('reanalyzes after expiry without discarding the source text', () => {
     start(); finish();
-    fixture.componentInstance.save();
     save$.error({ status: 409 });
     fixture.detectChanges();
     expect(text()).toContain('Relancez l’analyse');
     expect(fixture.componentInstance.analysis()).toBeNull();
     expect(fixture.componentInstance.form.controls.originalText.value).toBe('  Java requis\n');
+    analysis$ = new Subject<Analysis>();
+    service.analyze.mockReturnValue(analysis$);
+    fixture.componentInstance.analyze();
+    expect(service.analyze).toHaveBeenCalledTimes(2);
   });
 
-  it('invalidates preview when the original text or URL changes', () => {
+  it.each(['originalText', 'sourceUrl'] as const)('discards stale analysis when %s changes after a failure', (field) => {
     start(); finish();
-    fixture.componentInstance.form.controls.sourceUrl.setValue('https://example.org');
-    fixture.componentInstance.save();
-    expect(service.save).not.toHaveBeenCalled();
+    save$.error({ status: 500 });
+    fixture.componentInstance.form.controls[field].setValue('https://example.org');
     expect(fixture.componentInstance.analysis()).toBeNull();
+    analysis$ = new Subject<Analysis>();
+    service.analyze.mockReturnValue(analysis$);
+    fixture.componentInstance.analyze();
+    expect(service.analyze).toHaveBeenCalledTimes(2);
+    expect(service.save).toHaveBeenCalledOnce();
   });
+
+  it.each([false, 'reject'])('retries failed navigation (%s) without saving another offer', async (outcome) => {
+    const navigate = vi.mocked(TestBed.inject(Router).navigate);
+    if (outcome === 'reject') navigate.mockRejectedValueOnce(new Error('navigation failed'));
+    else navigate.mockResolvedValueOnce(false);
+    start(); finish(); saved();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(text()).toContain('Réessayez pour ouvrir la correction');
+    fixture.componentInstance.analyze();
+    await fixture.whenStable();
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(service.save).toHaveBeenCalledOnce();
+    expect(service.analyze).toHaveBeenCalledOnce();
+  });
+
+  function saved() {
+    save$.next({
+      id: 'saved-id', originalText: '  Java requis\n', sourceUrl: null,
+      analyzedAt: result.analyzedAt, reviewStatus: 'UNREVIEWED', reviewBypassedAt: null,
+      extraction: { ...result.extraction, requirements: result.extraction.requirements.map(r => ({ ...r, id: 'requirement-id', source: 'LLM_EXTRACTED' })) },
+    });
+    save$.complete();
+  }
 
   function text(): string { return fixture.nativeElement.textContent; }
   function start() {

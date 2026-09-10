@@ -1,14 +1,13 @@
-.review-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 1.25rem; align-items: start; }
-.original { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; }
+.original { position: sticky; top: 1rem; max-height: calc(100vh - 12rem); overflow: auto; }
 pre, blockquote { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.6; }
 blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid #749883; color: #66736e; }
 fieldset { margin: 0; min-width: 0; }
 .mission-field { flex: 1; }
 .provenance { margin: 1rem 0; }
-@media (max-width: 1000px) { .review-layout { grid-template-columns: 1fr; } .original { position: static; max-height: 20rem; } }
+@media (max-width: 79.999rem) { .original { position: static; max-height: 20rem; } }
 
 .page-shell { padding-bottom: 11rem; }
-.review-toolbar { position: fixed; inset: auto 0 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; padding: .85rem max(1rem, calc((100% - 72rem) / 2)); background: #fff; border-top: 1px solid #dce3de; box-shadow: 0 -.25rem 1rem #19322a0a; }
+.review-toolbar { position: fixed; inset: auto 0 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; padding: .85rem var(--page-inset); background: #fff; border-top: 1px solid #dce3de; box-shadow: 0 -.25rem 1rem #19322a0a; }
 .review-toolbar nav { display: flex; align-items: center; gap: .5rem; }
 .requirement-jump { min-width: 0; max-width: 20rem; }
 .requirement-jump select { margin: 0; }
@@ -19,7 +18,7 @@ fieldset { margin: 0; min-width: 0; }
 .requirement-done { margin: .5rem 0 0; font-size: .8rem; color: #2e7d5b; }
 .requirement-card, #review-position, #review-missions { scroll-margin-top: 1rem; }
 @media (max-width: 700px) {
-  .review-toolbar { padding: .65rem; gap: .5rem; }
+  .review-toolbar { padding: .65rem var(--page-gutter); gap: .5rem; }
   .review-toolbar nav { width: 100%; }
   .requirement-jump { flex: 1; }
   .review-toolbar > .primary { padding: .7rem; font-size: .85rem; }

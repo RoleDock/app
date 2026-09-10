@@ -1,9 +1,5 @@
 app-profile, app-job-offer-review, app-job-offer-detail, app-new-job-offer {
-& { display: block; min-height: 100vh; background: #f4f6f3; color: #1d2925; }
-.app-header { height: 4.25rem; padding: 0 max(1rem, calc((100% - 72rem) / 2)); display: flex; align-items: center; gap: 1.25rem; border-bottom: 1px solid #dce3de; background: #fff; color: #66736e; }
-.brand { color: #173f35; font-size: 1.3rem; font-weight: 800; text-decoration: none; letter-spacing: -.04em; }
-.brand::after { content: ''; display: inline-block; width: .45rem; height: .45rem; margin-left: .18rem; border-radius: 50%; background: #e37b4d; }
-.page-shell { width: min(72rem, calc(100% - 2rem)); margin: 0 auto; padding: 3.5rem 0 6rem; }
+& { display: block; background: var(--page-background); color: #1d2925; }
 .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
 .page-heading h1 { margin: .2rem 0 .7rem; font-family: Georgia, serif; font-size: clamp(2.25rem, 5vw, 3.7rem); font-weight: 500; letter-spacing: -.045em; }
 .page-heading p:not(.eyebrow) { max-width: 43rem; margin: 0; color: #5e6965; line-height: 1.55; }
@@ -62,7 +58,6 @@ button:disabled { cursor: wait; opacity: .65; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 700px) {
-  .page-shell { width: min(100% - 1rem, 72rem); padding-top: 2rem; }
   .page-heading { align-items: stretch; flex-direction: column; }
   .top-save { align-self: flex-start; }
   .two-columns { grid-template-columns: 1fr; }

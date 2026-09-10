@@ -1,9 +1,3 @@
-<header class="app-header">
-  <a class="brand" routerLink="/profile" aria-label="RoleDock, accueil">RoleDock</a>
-  <span>Profil candidat</span>
-  <a routerLink="/job-offers/new">Nouvelle offre</a>
-</header>
-
 <main class="page-shell">
   <div class="page-heading">
     <div>
@@ -80,7 +74,7 @@
       <section class="form-section" aria-labelledby="skills-title">
         <div class="section-heading"><div><span class="step">03</span><h2 id="skills-title">Compétences</h2></div><button type="button" class="add" data-testid="add-skill" (click)="addSkill()">+ Ajouter</button></div>
         <p class="section-help">Ajoutez uniquement des compétences que vous déclarez explicitement. Elles ne sont jamais déduites de vos expériences.</p>
-        <div class="cards-list" formArrayName="skills">
+        <div class="cards-list cards-grid" formArrayName="skills">
           @for (skill of form.controls.skills.controls; track skill.controls.id.value; let i = $index) {
             <article class="item-card" [formGroupName]="i" data-testid="skill-item">
               <div class="card-heading"><h3>Compétence {{ i + 1 }}</h3><button type="button" class="remove" (click)="removeSkill(i)">Supprimer</button></div>
@@ -117,7 +111,7 @@
 
       <section class="form-section" aria-labelledby="education-title">
         <div class="section-heading"><div><span class="step">05</span><h2 id="education-title">Formations</h2></div><button type="button" class="add" (click)="addEducation()">+ Ajouter</button></div>
-        <div class="cards-list" formArrayName="educations">
+        <div class="cards-list cards-grid" formArrayName="educations">
           @for (education of form.controls.educations.controls; track education.controls.id.value; let i = $index) { <article class="item-card" [formGroupName]="i"><div class="card-heading"><h3>Formation {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.educations.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Établissement<input formControlName="institution" maxlength="250" /></label><label>Diplôme ou intitulé<input formControlName="degree" maxlength="250" /></label><label>Domaine<input formControlName="field" maxlength="200" /></label><span></span><label>Date de début<input type="date" formControlName="startDate" /></label><label>Date de fin<input type="date" formControlName="endDate" /></label></div>@if (education.touched && education.hasError('dateRange')) { <p class="field-error">La date de fin ne peut pas précéder la date de début.</p> }<label>Description<textarea formControlName="description" maxlength="3000" rows="3"></textarea></label></article> }
           @empty { <p class="empty-list">Aucune formation ajoutée.</p> }
         </div>
@@ -125,7 +119,7 @@
 
       <section class="form-section" aria-labelledby="languages-title">
         <div class="section-heading"><div><span class="step">06</span><h2 id="languages-title">Langues</h2></div><button type="button" class="add" (click)="addLanguage()">+ Ajouter</button></div>
-        <div class="cards-list" formArrayName="languages">
+        <div class="cards-list cards-grid" formArrayName="languages">
           @for (language of form.controls.languages.controls; track language.controls.id.value; let i = $index) { <article class="item-card compact-card" [formGroupName]="i"><div class="card-heading"><h3>Langue {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.languages.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Langue<input formControlName="name" maxlength="150" /></label><label>Niveau déclaré<input formControlName="level" maxlength="150" placeholder="Ex. courant, C1" /></label></div></article> }
           @empty { <p class="empty-list">Aucune langue ajoutée.</p> }
         </div>
@@ -133,7 +127,7 @@
 
       <section class="form-section" aria-labelledby="certifications-title">
         <div class="section-heading"><div><span class="step">07</span><h2 id="certifications-title">Certifications</h2></div><button type="button" class="add" (click)="addCertification()">+ Ajouter</button></div>
-        <div class="cards-list" formArrayName="certifications">
+        <div class="cards-list cards-grid" formArrayName="certifications">
           @for (certification of form.controls.certifications.controls; track certification.controls.id.value; let i = $index) { <article class="item-card" [formGroupName]="i"><div class="card-heading"><h3>Certification {{ i + 1 }}</h3><button type="button" class="remove" (click)="form.controls.certifications.removeAt(i)">Supprimer</button></div><div class="fields two-columns"><label>Nom<input formControlName="name" maxlength="250" /></label><label>Organisme émetteur<input formControlName="issuer" maxlength="250" /></label><label>Date d’obtention<input type="date" formControlName="issueDate" /></label><label>Date d’expiration<input type="date" formControlName="expirationDate" /></label><label>Identifiant<input formControlName="credentialId" maxlength="250" /></label><label>URL<input type="url" formControlName="credentialUrl" maxlength="1000" /></label></div>@if (certification.touched && certification.hasError('dateRange')) { <p class="field-error">La date d’expiration ne peut pas précéder la date d’obtention.</p> }@if (certification.controls.credentialUrl.touched && certification.controls.credentialUrl.hasError('pattern')) { <p class="field-error">Saisissez une URL commençant par http:// ou https://.</p> }</article> }
           @empty { <p class="empty-list">Aucune certification ajoutée.</p> }
         </div>

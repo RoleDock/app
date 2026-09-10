@@ -47,6 +47,25 @@ describe('Saved job offer', () => {
     expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toBe(label);
     expect(fixture.nativeElement.textContent).toContain('Vérifier ou corriger');
   });
+  it('groups requirements into independently expandable categories', () => {
+    const requirement = { canonicalLabel: 'Java', rawText: 'Java requis', category: 'TECH_SKILL', requirementKind: 'REQUIRED', centrality: 'CORE' };
+    service.get.mockReturnValue(of({ ...saved, extraction: { ...saved.extraction, requirements: [requirement, { ...requirement, canonicalLabel: 'Spring' }, { ...requirement, category: 'EXPERIENCE' }] } }));
+    const fixture = TestBed.createComponent(JobOfferDetailComponent);
+    fixture.detectChanges();
+    const toggles = fixture.nativeElement.querySelectorAll('.category-toggle') as NodeListOf<HTMLButtonElement>;
+    const contents = fixture.nativeElement.querySelectorAll('.category-content') as NodeListOf<HTMLElement>;
+    expect(toggles).toHaveLength(2);
+    expect(toggles[0].textContent).toContain('Compétence technique');
+    expect(toggles[0].textContent).toContain('2');
+    expect(contents[0].hidden).toBe(true);
+    toggles[0].click(); fixture.detectChanges();
+    expect(contents[0].hidden).toBe(false);
+    expect(contents[1].hidden).toBe(true);
+    expect(contents[0].querySelectorAll('article')).toHaveLength(2);
+    toggles[0].click(); fixture.detectChanges();
+    expect(contents[0].hidden).toBe(true);
+  });
+
   it('offers a retry when loading fails', () => {
     service.get.mockReturnValueOnce(throwError(() => new Error('offline')));
     const fixture = TestBed.createComponent(JobOfferDetailComponent);
