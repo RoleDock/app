@@ -36,5 +36,25 @@ export interface JobOffer {
   sourceUrl: string | null;
   analyzedAt: string;
   reviewStatus: 'UNREVIEWED' | 'CONFIRMED' | 'CORRECTED';
-  extraction: Extraction;
+  reviewBypassedAt: string | null;
+  extraction: CurrentExtraction;
+}
+
+export interface CurrentRequirement extends Omit<Requirement, 'rawText' | 'extractionConfidence'> {
+  id: string | null;
+  source: 'LLM_EXTRACTED' | 'USER_ADDED';
+  rawText: string | null;
+  extractionConfidence: Requirement['extractionConfidence'] | null;
+}
+export interface CurrentExtraction extends Omit<Extraction, 'requirements'> {
+  requirements: CurrentRequirement[];
+}
+export interface ReviewCommand {
+  action: 'SAVE' | 'BYPASS';
+  extraction?: CurrentExtraction;
+}
+export function reviewLabel(offer: JobOffer): string {
+  if (offer.reviewStatus === 'CORRECTED') return 'Analyse vérifiée et corrigée';
+  if (offer.reviewStatus === 'CONFIRMED') return 'Analyse vérifiée';
+  return offer.reviewBypassedAt ? 'Analyse automatique — non vérifiée' : 'Analyse automatique — vérification recommandée';
 }

@@ -56,7 +56,8 @@ class JobOfferControllerTests {
         assertThat(saved.originalText()).isEqualTo(TEXT);
         assertThat(saved.sourceUrl()).isEqualTo("https://example.org/vacancy");
         assertThat(saved.analyzedAt()).isNotNull();
-        assertThat(saved.extraction()).isEqualTo(extraction());
+        assertThat(saved.extraction()).usingRecursiveComparison()
+                .ignoringFields("requirements.id", "requirements.source").isEqualTo(extraction());
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM job_requirement", Integer.class)).isEqualTo(2);
         assertThat(jdbc.queryForList("SELECT mission FROM job_offer_mission ORDER BY sort_order", String.class))
                 .containsExactly("Build synthetic APIs.", "Maintain tests.");

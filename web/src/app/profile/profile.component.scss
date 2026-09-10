@@ -1,4 +1,4 @@
-app-profile {
+app-profile, app-job-offer-review, app-job-offer-detail, app-new-job-offer {
 & { display: block; min-height: 100vh; background: #f4f6f3; color: #1d2925; }
 .app-header { height: 4.25rem; padding: 0 max(1rem, calc((100% - 72rem) / 2)); display: flex; align-items: center; gap: 1.25rem; border-bottom: 1px solid #dce3de; background: #fff; color: #66736e; }
 .brand { color: #173f35; font-size: 1.3rem; font-weight: 800; text-decoration: none; letter-spacing: -.04em; }
@@ -22,10 +22,10 @@ h4 { font-size: .9rem; }
 .two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .wide { grid-column: 1 / -1; }
 label, legend { color: #384640; font-size: .85rem; font-weight: 700; }
-input, textarea { width: 100%; margin-top: .45rem; padding: .72rem .8rem; border: 1px solid #c9d2cd; border-radius: .45rem; background: #fff; color: #19231f; font: inherit; transition: border-color .15s, box-shadow .15s; }
+input, textarea, select { width: 100%; margin-top: .45rem; padding: .72rem .8rem; border: 1px solid #c9d2cd; border-radius: .45rem; background: #fff; color: #19231f; font: inherit; transition: border-color .15s, box-shadow .15s; }
 textarea { resize: vertical; line-height: 1.5; }
-input:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 3px solid rgba(47, 112, 91, .2); outline-offset: 2px; border-color: #2f705b; }
-input.ng-invalid.ng-touched, textarea.ng-invalid.ng-touched { border-color: #b54838; }
+input:focus, textarea:focus, select:focus, button:focus-visible, a:focus-visible { outline: 3px solid rgba(47, 112, 91, .2); outline-offset: 2px; border-color: #2f705b; }
+input.ng-invalid.ng-touched, textarea.ng-invalid.ng-touched, select.ng-invalid.ng-touched { border-color: #b54838; }
 fieldset { margin: 1.4rem 0 0; padding: 0; border: 0; }
 .checkbox-row, .skill-links { display: flex; flex-wrap: wrap; gap: .7rem 1.25rem; }
 .skill-links { margin-top: 1.3rem; padding-top: 1.2rem; border-top: 1px solid #e5eae7; }

@@ -11,6 +11,7 @@ import { JobOfferPreviewComponent } from './job-offer-preview.component';
   selector: 'app-new-job-offer',
   imports: [ReactiveFormsModule, RouterLink, JobOfferPreviewComponent],
   templateUrl: './new-job-offer.component.html',
+  styles: `.offer-text-help { color: #66736e; font-size: .8rem; } .analysis-progress { display: flex; align-items: center; gap: .8rem; color: #384640; } .analysis-progress .spinner { flex-shrink: 0; } .preview-save { margin-top: 0; }`,
 })
 export class NewJobOfferComponent {
   private readonly service = inject(JobOfferService);

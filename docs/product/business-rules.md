@@ -19,10 +19,20 @@ converted into false or inferred facts.
 
 Automatic extraction is a proposal. A candidate may save it as a draft without
 review; the product displays “Analyse automatique — vérification recommandée.”
-New drafts are `UNREVIEWED`. Future explicit acceptance can set `CONFIRMED`;
-future correction can set `CORRECTED`. This slice exposes no review-state changes.
-No extra skip state or boolean is introduced: the intentional skip workflow and
-its decision semantics belong to the next feature.
+New drafts are `UNREVIEWED`. Explicit review without structured changes sets
+`CONFIRMED`; corrections set `CORRECTED`. Later unchanged review preserves an
+existing `CORRECTED` status. Review is recommended, never mandatory.
+
+Continuing without review leaves `UNREVIEWED` and records `reviewBypassedAt`.
+Without that timestamp the user has not made a review decision; with it the user
+has intentionally bypassed review. Later confirmation/correction is shown as
+reviewed regardless of the retained timestamp. Manually added requirements have
+`USER_ADDED` provenance and no automatic quotation or extraction confidence.
+
+Future matching may use unreviewed data with a warning, but unreviewed extraction
+alone must never produce a definitive elimination recommendation. An unreviewed
+blocker requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`. Bypassing does not
+relax this rule. No matching or scoring is implemented in this slice.
 
 The original advertisement remains intact, the initial validated extraction is
 retained separately, and current structured values can evolve later without

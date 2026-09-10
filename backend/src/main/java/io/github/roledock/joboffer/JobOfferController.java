@@ -16,8 +16,16 @@ class JobOfferController {
     private static final String PENDING = JobOfferController.class.getName() + ".pending";
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JobOfferController.class);
     private final JobOfferService service;
+    private final JobOfferReviewService reviewService;
 
-    JobOfferController(JobOfferService service) { this.service = service; }
+    JobOfferController(JobOfferService service, JobOfferReviewService reviewService) {
+        this.service = service; this.reviewService = reviewService;
+    }
+
+    @PutMapping("/{id}/review")
+    Response review(@PathVariable UUID id, @Valid @RequestBody JobOfferReviewDtos.Command command) {
+        return reviewService.review(id, command);
+    }
 
     @PostMapping("/analyze")
     Analysis analyze(@Valid @RequestBody AnalyzeRequest request, HttpSession session) {
@@ -44,6 +52,14 @@ class JobOfferController {
     ResponseEntity<?> get(@PathVariable UUID id) {
         return service.get(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElseGet(() ->
                 ResponseEntity.status(404).body(new ApiError("OFFER_NOT_FOUND", "Offre introuvable.", Map.of())));
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    ResponseEntity<ApiError> reviewFailure(org.springframework.web.server.ResponseStatusException exception) {
+        boolean missing = exception.getStatusCode().value() == 404;
+        return ResponseEntity.status(exception.getStatusCode()).body(new ApiError(
+                missing ? "OFFER_NOT_FOUND" : "ALREADY_REVIEWED",
+                missing ? "Offre introuvable." : "Cette analyse a déjà été vérifiée.", Map.of()));
     }
 
     @ExceptionHandler(ExtractionException.class)

@@ -7,7 +7,7 @@ import { JobOfferService } from './job-offer.service';
 describe('Saved job offer', () => {
   const saved = {
     id: 'saved-id', originalText: '  Synthetic original\n', sourceUrl: null,
-    reviewStatus: 'UNREVIEWED', analyzedAt: '2026-09-10T00:00:00Z',
+    reviewStatus: 'UNREVIEWED', reviewBypassedAt: null, analyzedAt: '2026-09-10T00:00:00Z',
     extraction: {
       company: 'Saved company', position: null, location: { city: null, region: null, country: null },
       workArrangement: { type: 'UNKNOWN', remoteArea: null, onSiteDaysPerWeek: null },
@@ -35,6 +35,17 @@ describe('Saved job offer', () => {
     reloaded.detectChanges();
     expect(service.get).toHaveBeenCalledTimes(2);
     expect(reloaded.nativeElement.textContent).toContain('Saved company');
+  });
+  it.each([
+    ['UNREVIEWED', '2026-09-10T01:00:00Z', 'Analyse automatique — non vérifiée'],
+    ['CONFIRMED', '2026-09-10T01:00:00Z', 'Analyse vérifiée'],
+    ['CORRECTED', '2026-09-10T01:00:00Z', 'Analyse vérifiée et corrigée'],
+  ])('shows persisted %s state even after bypass', (reviewStatus, reviewBypassedAt, label) => {
+    service.get.mockReturnValue(of({ ...saved, reviewStatus, reviewBypassedAt }));
+    const fixture = TestBed.createComponent(JobOfferDetailComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toBe(label);
+    expect(fixture.nativeElement.textContent).toContain('Vérifier ou corriger');
   });
   it('offers a retry when loading fails', () => {
     service.get.mockReturnValueOnce(throwError(() => new Error('offline')));

@@ -10,3 +10,5 @@ databaseChangeLog:
       file: db/changelog/0002-candidate-profile.yaml
   - include:
       file: db/changelog/0003-job-offers.sql
+  - include:
+      file: db/changelog/0004-job-offer-review.sql

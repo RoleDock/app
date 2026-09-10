@@ -15,6 +15,7 @@ class JobOffer {
     @Column(nullable = false, updatable = false) Instant analyzedAt;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20)
     ReviewStatus reviewStatus = ReviewStatus.UNREVIEWED;
+    Instant reviewBypassedAt;
     // Only the validated public contract; never a provider response or diagnostic.
     @Column(nullable = false, columnDefinition = "text", updatable = false) String initialExtraction;
     @Column(columnDefinition = "text") String company;
@@ -63,10 +64,10 @@ class JobOffer {
     }
 
     JobOfferDtos.Response toResponse() {
-        var current = new JobOfferExtraction(company, position, new Location(city, region, country),
+        var current = new JobOfferReviewDtos.CurrentExtraction(company, position, new Location(city, region, country),
                 new WorkArrangement(workArrangementType, remoteArea, onSiteDaysPerWeek), contractType,
                 sourceLanguage, summary, List.copyOf(missions),
                 requirements.stream().map(JobRequirement::toData).toList());
-        return new JobOfferDtos.Response(id, originalText, sourceUrl, analyzedAt, reviewStatus, current);
+        return new JobOfferDtos.Response(id, originalText, sourceUrl, analyzedAt, reviewStatus, reviewBypassedAt, current);
     }
 }

@@ -26,5 +26,5 @@ public final class JobOfferDtos {
     public record SaveRequest(@NotNull UUID analysisId) {}
     public record Analysis(UUID analysisId, Instant analyzedAt, JobOfferExtraction extraction) {}
     public record Response(UUID id, String originalText, String sourceUrl, Instant analyzedAt,
-                           ReviewStatus reviewStatus, JobOfferExtraction extraction) {}
+                           ReviewStatus reviewStatus, Instant reviewBypassedAt, JobOfferReviewDtos.CurrentExtraction extraction) {}
 }

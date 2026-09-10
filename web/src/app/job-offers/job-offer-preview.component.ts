@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { Extraction } from './job-offer.models';
+import { Extraction, CurrentExtraction } from './job-offer.models';
 
 @Component({
   selector: 'app-job-offer-preview',
@@ -24,7 +24,7 @@ import { Extraction } from './job-offer.models';
         <article class="requirement">
           <h4>{{ requirement.canonicalLabel }}</h4>
           <p>{{ label(requirement.requirementKind) }} · {{ label(requirement.centrality) }} · {{ label(requirement.category) }}</p>
-          <blockquote>{{ requirement.rawText }}</blockquote>
+          @if (requirement.rawText) { <blockquote>{{ requirement.rawText }}</blockquote> } @else { <p>Ajoutée par vous — sans citation automatique</p> }
         </article>
       } @empty { <p>Aucune exigence extraite.</p> }
     </section>
@@ -37,11 +37,11 @@ import { Extraction } from './job-offer.models';
   `,
 })
 export class JobOfferPreviewComponent {
-  readonly extraction = input.required<Extraction>();
+  readonly extraction = input.required<Extraction | CurrentExtraction>();
   readonly present = (value: string | null) => value !== null && value !== '';
   label(value: string): string { return labels[value] ?? value; }
 }
-const labels: Record<string, string> = {
+export const labels: Record<string, string> = {
   UNKNOWN: 'Non précisé', ONSITE: 'Sur site', HYBRID: 'Hybride', REMOTE: 'À distance',
   PERMANENT: 'Contrat permanent', FIXED_TERM: 'Durée déterminée', FREELANCE: 'Indépendant',
   INTERNSHIP: 'Stage', APPRENTICESHIP: 'Alternance', TEMPORARY: 'Travail temporaire', OTHER: 'Autre',
@@ -50,5 +50,6 @@ const labels: Record<string, string> = {
   TECH_SKILL: 'Compétence technique', EXPERIENCE: 'Expérience', DOMAIN_KNOWLEDGE: 'Connaissance métier',
   TITLE_LEVEL: 'Niveau du poste', EDUCATION: 'Formation', CERTIFICATION: 'Certification',
   LOCATION: 'Localisation', WORK_AUTHORIZATION: 'Autorisation de travail', LANGUAGE: 'Langue',
+  EXPLICIT: 'Explicite', INFERRED: 'Interprétée', AT_LEAST: 'Au moins', AT_MOST: 'Au plus', EQUALS: 'Égal à', RANGE: 'Intervalle',
   AVAILABILITY: 'Disponibilité', CONTRACT: 'Contrat', SOFT_SKILL: 'Compétence relationnelle',
 };
