@@ -13,9 +13,9 @@ flowchart LR
 ```
 
 The Angular-to-Spring Boot-to-PostgreSQL path is the current technical
-foundation. The LLM provider is a planned MVP integration boundary and is not
-part of the bootstrap yet. The mobile client is a possible future consumer, not
-an MVP component.
+foundation. An experimental [job-offer extraction boundary](job-offer-extraction.md)
+now connects the backend to an optional LLM provider without persistence or matching.
+The mobile client is a possible future consumer, not an MVP component.
 
 ## Current components
 
@@ -27,8 +27,7 @@ results, manages screen-level state, and calls the backend through the REST API.
 ### Spring Boot backend
 
 Owns the REST API, domain rules, persistence orchestration, compatibility
-scoring, and AI integration. AI-provider integration will be added only when an
-MVP feature requires it.
+scoring, and AI integration. The extraction spike is the first provider integration.
 
 ### PostgreSQL
 
@@ -36,7 +35,7 @@ Stores persistent RoleDock data. Liquibase versions every schema change.
 
 ### LLM provider
 
-Will be used only for tasks where probabilistic language processing adds value.
+Used by the extraction spike for structured interpretation of advertisement text.
 It is an external assistant to the workflow, not a system of record or rule
 engine.
 

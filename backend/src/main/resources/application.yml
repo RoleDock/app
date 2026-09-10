@@ -11,3 +11,8 @@ spring:
     open-in-view: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+
+roledock:
+  extraction:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${JOB_OFFER_EXTRACTION_MODEL:}

@@ -1,0 +1,1 @@
+Example Labs is hiring a backend engineer in Bristol, UK on a fixed-term contract. Build payment APIs with Go. At least 3 years of backend experience required. Applicants must already have legal authorization to work in the UK; sponsorship is unavailable. Finance domain knowledge is a bonus.

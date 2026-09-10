@@ -23,6 +23,7 @@ Early development — MVP v0.1.
 - [Proposed data model](docs/architecture/data-model.md)
 - [Compatibility scoring](docs/architecture/scoring.md)
 - [AI strategy](docs/architecture/ai-strategy.md)
+- [Job-offer extraction spike and manual evaluation](docs/architecture/job-offer-extraction.md)
 
 ## Local development
 
