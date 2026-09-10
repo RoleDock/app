@@ -93,22 +93,41 @@ skill identifiers supplied by the candidate.
 
 ### `JobOffer`
 
-- `id`
-- `company`
-- `position`
-- `location`
-- `original_text`
-- `source_url`
-- `analyzed_at`
+Implemented as a draft aggregate in `job_offer`, with UUID identity, original
+advertisement text (preserved without trimming), optional source URL, company,
+position, source language, summary, city/region/country, contract type, work
+arrangement type/remote area/onsite days, and server-generated analysis timestamp.
+Ordered missions live in `job_offer_mission`; ordered requirements are children.
+
+Three representations remain deliberately distinct:
+
+- `original_text` is the source advertisement, preserved verbatim.
+- `initial_extraction` is a JSON text snapshot of the initial validated public
+  `JobOfferExtraction` contract, generated on the server. It contains no provider
+  envelope, credentials, prompt or diagnostics. JPA marks it and the source text
+  non-updatable. No revision or audit framework is introduced.
+- Current structured columns and children initially equal the snapshot and can
+  later be corrected independently.
+
+`review_status` defaults to `UNREVIEWED`. `CONFIRMED` means a future user review
+accepted the proposal; `CORRECTED` means a future review changed structured values.
+Only UNREVIEWED is created by the current API, which has no review-update operation.
+Draft describes this saved offer; it is not an application-tracking status.
 
 ### `JobRequirement`
 
-- `id`
-- `job_offer_id`
-- `normalized_skill_id` (nullable)
-- `label`
-- `type`
-- `category`
+Implemented in `job_requirement`: UUID, offer FK, order, raw quotation, canonical
+label, category, requirement kind, centrality, explicitness, potential hard-blocker
+flag and optional condition, optional constraint operator/value/unit, extraction
+confidence. Enums retain the existing extraction contract names. No candidate
+evidence, matching or scoring fields are stored.
+
+Liquibase migration `0003-job-offers.sql` adds these three tables. Foreign keys,
+ordering uniqueness, review-state and onsite-day bounds, and constraint/blocker
+consistency protect stored invariants. JSON is portable TEXT because the initial
+snapshot is read as a whole, not queried.
+
+The following analysis/matching entities remain conceptual and unimplemented.
 
 ### `OfferAnalysis`
 

@@ -5,8 +5,9 @@
 Extraction answers only "What does this job advertisement say?" The backend exposes
 `JobOfferExtractor.extract(String)` returning `JobOfferExtraction` in
 `io.github.roledock.joboffer.extraction`. One OpenAI adapter sits behind that interface.
-No provider SDK types cross the interface. There is no profile access, persistence,
-candidate assessment, matching, score, application workflow, or frontend in this spike.
+No provider SDK types cross the interface. The extractor has no profile access,
+persistence, candidate assessment, matching, score or application workflow.
+The product layer now uses it to preview and save draft offers (see below).
 
 The experimental `POST /api/job-offers/extract` takes `{"text":"..."}` and returns
 the validated extraction. Blank/null/missing text, malformed JSON and text longer
@@ -106,7 +107,8 @@ extractors before returning them. Schema enum consistency is checked by tests.
 This proves contract handling, not semantic accuracy. Schema-constrained output
 cannot guarantee facts, correct canonicalization or immunity to prompt injection.
 Exact quotations help traceability but do not prove that an interpretation is right.
-Human review of actual model runs is still required before persistence or matching.
+Product drafts may be saved without human review and are explicitly UNREVIEWED.
+Saving is not acceptance of the proposal as authoritative business truth.
 
 ## Manual provider evaluation (explicit opt-in)
 
@@ -174,3 +176,44 @@ automatically activated: the backend still reads the runtime instructions file.
   when a later consumer has a concrete need.
 - Choosing a provider model and acceptable quality/latency thresholds requires
   manual measurements, not a default embedded in business code.
+
+## Persistent draft product slice
+
+The baseline stays OpenAI Responses with structured output and runtime prompt v4.
+`POST /api/job-offers/extract` remains unchanged and stateless.
+
+The product API separates analysis from saving:
+
+- `POST /api/job-offers/analyze`: accepts `originalText` (nonblank, at most
+  50,000 UTF-16 code units) and nullable `sourceUrl` (HTTP(S), at most 2,000
+  characters, no embedded credentials). URLs are retained as references, never
+  fetched. Returns `analysisId`, `analyzedAt`, and validated `extraction`.
+- `POST /api/job-offers`: accepts only `analysisId` and saves the server-held
+  proposal transactionally. Returns 201, a Location header and an explicit offer
+  DTO containing original text, URL, timestamp, review status and current extraction.
+- `GET /api/job-offers/{id}`: retrieves that DTO independently of the analysis
+  session; unknown offers return 404.
+
+One pending analysis is kept in the existing servlet HTTP session, using the
+session cookie on both requests. It does not create a database row. A successful
+new analysis replaces the pending one, including across tabs in that browser.
+Session expiration or server restart discards unsaved analysis; Save then returns
+409 and the form offers reanalysis without clearing the text. This deliberately
+small, single-server MVP design avoids accepting client-edited content as original
+LLM provenance. It is not authentication or a distributed analysis store.
+
+The analysis UUID becomes the offer UUID. Saves are serialized within the session;
+repeating Save for that pending analysis returns the existing offer. A failed
+transaction retains the pending proposal for retry. Parent, missions and
+requirements commit together. Failed extraction cannot persist a partial offer.
+
+The Angular page `/job-offers/new` presents the proposal and allows Save without
+review. It preserves input on extraction/persistence failures, disables concurrent
+actions and invalidates the preview when input changes. Successful Save opens
+`/job-offers/{id}`, which fetches the persisted draft again on reload.
+Both views show “Analyse automatique — vérification recommandée.”
+
+Original text, initial validated extraction snapshot, current values and review
+state are distinct; see [the persistence model](data-model.md).
+No confirmation, corrections, skip-review decision, profile access or matching
+is implemented.

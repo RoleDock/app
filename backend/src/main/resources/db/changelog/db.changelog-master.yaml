@@ -8,3 +8,5 @@ databaseChangeLog:
             tag: baseline
   - include:
       file: db/changelog/0002-candidate-profile.yaml
+  - include:
+      file: db/changelog/0003-job-offers.sql
