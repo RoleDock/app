@@ -1,0 +1,10 @@
+<section aria-label="Progression de l’offre" aria-live="polite">
+  <ol>
+    @for (step of steps(); track step.label; let i = $index) {
+      <li [class]="step.state" [class.is-current]="step.current" [attr.aria-current]="step.current ? 'step' : null">
+        <span class="marker" [class.processing-marker]="step.state === 'processing'" aria-hidden="true">{{ step.state === 'completed' ? '✓' : step.state === 'bypassed' ? '−' : step.state === 'error' ? '!' : i + 1 }}</span>
+        <span class="caption"><strong>{{ step.label }}</strong><span>{{ step.description }}</span></span>
+      </li>
+    }
+  </ol>
+</section>

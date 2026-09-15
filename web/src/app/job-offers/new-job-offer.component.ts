@@ -1,14 +1,15 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Analysis, JobOffer } from './job-offer.models';
 import { JobOfferService } from './job-offer.service';
+import { AnalysisState, JobOfferProgressComponent } from './job-offer-progress.component';
 
 @Component({
   selector: 'app-new-job-offer',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, JobOfferProgressComponent],
   templateUrl: './new-job-offer.component.html',
   styles: `.offer-text-help { color: var(--text-secondary); font-size: .8rem; } .analysis-progress { display: flex; align-items: center; gap: .8rem; color: var(--text-secondary); } .analysis-progress .spinner { flex-shrink: 0; }`,
 })
@@ -26,6 +27,8 @@ export class NewJobOfferComponent {
   readonly error = signal('');
   readonly analysis = signal<Analysis | null>(null);
   readonly saved = signal<JobOffer | null>(null);
+  readonly progressState = computed<AnalysisState>(() => this.saved() ? 'completed'
+    : this.analyzing() || this.saving() ? 'processing' : this.error() ? 'error' : 'idle');
 
   constructor() {
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {

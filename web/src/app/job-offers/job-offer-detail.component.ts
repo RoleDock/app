@@ -4,12 +4,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { JobOffer, reviewLabel } from './job-offer.models';
 import { JobOfferService } from './job-offer.service';
 import { JobOfferPreviewComponent } from './job-offer-preview.component';
+import { JobOfferProgressComponent } from './job-offer-progress.component';
 
 @Component({
   selector: 'app-job-offer-detail',
-  imports: [RouterLink, JobOfferPreviewComponent],
+  imports: [RouterLink, JobOfferPreviewComponent, JobOfferProgressComponent],
   template: `
     <main class="page-shell">
+      <app-job-offer-progress page="detail" [reviewStatus]="offer()?.reviewStatus ?? null" [reviewBypassedAt]="offer()?.reviewBypassedAt ?? null" />
       <div class="page-heading"><div><p class="eyebrow">Votre espace candidature</p><h1>Votre offre d’emploi</h1></div></div>
       @if (loading()) { <p role="status">Chargement…</p> }
       @if (error()) { <p role="alert">Impossible de charger cette offre. Vérifiez le lien et la disponibilité du serveur.</p><button class="secondary" (click)="load()">Réessayer</button> }
