@@ -1,7 +1,7 @@
-:host { display: block; min-width: 0; color: #293e33; overflow-wrap: anywhere; }
+:host { display: block; min-width: 0; color: var(--text-primary); overflow-wrap: anywhere; }
 p, ul, blockquote { max-width: var(--text-measure); line-height: 1.65; }
 h2 { margin-bottom: 1.5rem; }
-h3 { font-size: 1.15rem; color: #173f35; }
+h3 { font-size: 1.15rem; color: var(--accent-heading); }
 
 .metadata {
   display: grid;
@@ -9,11 +9,11 @@ h3 { font-size: 1.15rem; color: #173f35; }
   gap: 1.25rem;
   padding: 1.25rem;
   margin: 0 0 2rem;
-  border: 1px solid #dce5df;
+  border: 1px solid var(--border-default);
   border-radius: .65rem;
-  background: #f3f6f3;
+  background: var(--surface-subtle);
 }
-dt { color: #5a6e61; font-size: .8rem; font-weight: 600; }
+dt { color: var(--text-secondary); font-size: .8rem; font-weight: 600; }
 dd { margin: .4rem 0 0; font-size: .95rem; font-weight: 650; line-height: 1.5; }
 
 .overview {
@@ -26,10 +26,10 @@ dd { margin: .4rem 0 0; font-size: .95rem; font-weight: 650; line-height: 1.5; }
 .overview-section p { margin: .9rem 0 0; }
 .missions { margin: .9rem 0 0; padding-left: 1.2rem; }
 .missions li { padding-left: .3rem; margin-bottom: .65rem; }
-.missions li::marker { color: #749883; }
+.missions li::marker { color: var(--border-control); }
 
 .requirements-heading { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.2rem; }
-.count { padding: .2rem .6rem; border-radius: 2rem; background: #e9eeea; color: #42634f; font-size: .8rem; font-weight: 700; }
+.count { padding: .2rem .6rem; border-radius: 2rem; background: var(--accent-soft); color: var(--accent); font-size: .8rem; font-weight: 700; }
 .requirements-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
@@ -38,17 +38,17 @@ dd { margin: .4rem 0 0; font-size: .95rem; font-weight: 650; line-height: 1.5; }
 .requirement {
   min-width: 0;
   padding: clamp(1rem, 2vw, 1.5rem);
-  border: 1px solid #d5e0d8;
+  border: 1px solid var(--border-default);
   border-radius: .75rem;
-  background: #fbfcfb;
+  background: var(--surface-subtle);
 }
-.category { margin: 0 0 .55rem; color: #607267; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
-.requirement h4 { margin: 0; color: #203e2e; font-size: 1.05rem; font-weight: 700; line-height: 1.45; }
+.category { margin: 0 0 .55rem; color: var(--text-secondary); font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
+.requirement h4 { margin: 0; color: var(--accent); font-size: 1.05rem; font-weight: 700; line-height: 1.45; }
 .badges { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem; margin: .85rem 0 1.1rem; }
-.badge { padding: .25rem .65rem; border-radius: 2rem; background: #edf0ed; color: #506355; font-size: .75rem; font-weight: 700; }
-.badge.required { background: #e1eee5; color: #26593c; }
-.priority { font-size: .8rem; color: #586b5e; }
-.source-quote { padding: .9rem 1rem; border-left: 3px solid #8caa97; border-radius: 0 .45rem .45rem 0; background: #f0f4f1; }
-.source-label { margin: 0 0 .4rem; font-size: .7rem; font-weight: 750; color: #5a7263; letter-spacing: .06em; text-transform: uppercase; }
-blockquote { margin: 0; font-size: .9rem; color: #415a4a; white-space: pre-wrap; }
-.manual-source { margin: 0; font-size: .85rem; color: #607267; }
+.badge { padding: .25rem .65rem; border-radius: 2rem; background: var(--surface-subtle); color: var(--text-secondary); font-size: .75rem; font-weight: 700; }
+.badge.required { background: var(--accent-soft); color: var(--accent); }
+.priority { font-size: .8rem; color: var(--text-secondary); }
+.source-quote { padding: .9rem 1rem; border-left: 3px solid var(--border-control); border-radius: 0 .45rem .45rem 0; background: var(--surface-subtle); }
+.source-label { margin: 0 0 .4rem; font-size: .7rem; font-weight: 750; color: var(--text-secondary); letter-spacing: .06em; text-transform: uppercase; }
+blockquote { margin: 0; font-size: .9rem; color: var(--text-secondary); white-space: pre-wrap; }
+.manual-source { margin: 0; font-size: .85rem; color: var(--text-secondary); }

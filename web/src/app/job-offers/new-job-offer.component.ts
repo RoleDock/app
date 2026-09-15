@@ -10,7 +10,7 @@ import { JobOfferService } from './job-offer.service';
   selector: 'app-new-job-offer',
   imports: [ReactiveFormsModule],
   templateUrl: './new-job-offer.component.html',
-  styles: `.offer-text-help { color: #66736e; font-size: .8rem; } .analysis-progress { display: flex; align-items: center; gap: .8rem; color: #384640; } .analysis-progress .spinner { flex-shrink: 0; }`,
+  styles: `.offer-text-help { color: var(--text-secondary); font-size: .8rem; } .analysis-progress { display: flex; align-items: center; gap: .8rem; color: var(--text-secondary); } .analysis-progress .spinner { flex-shrink: 0; }`,
 })
 export class NewJobOfferComponent {
   private readonly service = inject(JobOfferService);

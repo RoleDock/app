@@ -5,6 +5,12 @@
   <title>RoleDock</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // Apply the saved palette before styles and Angular paint the page.
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('roledock.theme') === 'dark' ? 'dark' : 'light';
+    } catch { document.documentElement.dataset.theme = 'light'; }
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
