@@ -132,6 +132,16 @@ describe('New job offer', () => {
     expect(service.analyze).toHaveBeenCalledOnce();
   });
 
+  it('does not analyze or save again when the creation page is recreated after back or reload', async () => {
+    start(); finish(); saved(); await fixture.whenStable();
+    fixture.destroy();
+    fixture = TestBed.createComponent(NewJobOfferComponent);
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(service.analyze).toHaveBeenCalledOnce();
+    expect(service.save).toHaveBeenCalledOnce();
+    expect(fixture.componentInstance.form.controls.originalText.value).toBe('');
+  });
+
   function saved() {
     save$.next({
       id: 'saved-id', originalText: '  Java requis\n', sourceUrl: null,

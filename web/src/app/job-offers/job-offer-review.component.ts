@@ -70,6 +70,8 @@ export class JobOfferReviewComponent {
   readonly offer = signal<JobOffer | null>(null);
   readonly loading = signal(false);
   readonly saving = signal(false);
+  readonly navigating = signal(false);
+  readonly navigationError = signal('');
   readonly error = signal('');
   readonly fieldErrors = signal<string[]>([]);
   readonly success = signal(false);
@@ -110,15 +112,33 @@ export class JobOfferReviewComponent {
     this.goToRequirement((this.draft?.requirements.length ?? 1) - 1);
   }
   save(): void { if (this.draft) this.submit({ action: 'SAVE', extraction: this.draft }); }
-  bypass(): void { if (!this.dirty()) this.submit({ action: 'BYPASS' }); }
+  bypass(): void {
+    if (this.dirty() || this.saving() || this.navigating()) return;
+    if (this.offer()?.reviewBypassedAt) void this.openSavedOffer();
+    else this.submit({ action: 'BYPASS' });
+  }
+  private async openSavedOffer(): Promise<void> {
+    const offer = this.offer();
+    if (!offer) return;
+    this.navigating.set(true); this.navigationError.set('');
+    try {
+      if (await this.router.navigate(['/job-offers', offer.id])) return;
+    } catch {
+      // The bypass is already persisted; retry only navigation.
+    } finally {
+      this.navigating.set(false);
+    }
+    this.navigationError.set('Votre choix est enregistré. Réessayez pour ouvrir l’offre.');
+  }
   private submit(command: ReviewCommand): void {
     const offer = this.offer();
-    if (!offer || this.saving()) return;
+    if (!offer || this.saving() || this.navigating()) return;
+    this.navigationError.set('');
     this.saving.set(true); this.error.set(''); this.fieldErrors.set([]); this.success.set(false);
     this.service.review(offer.id, command).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: saved => {
-        this.accept(saved); this.saving.set(false); this.success.set(true);
-        if (command.action === 'BYPASS') void this.router.navigate(['/job-offers', saved.id]);
+        this.accept(saved); this.saving.set(false); this.success.set(command.action === 'SAVE');
+        if (command.action === 'BYPASS') void this.openSavedOffer();
       },
       error: failure => {
         this.saving.set(false);
