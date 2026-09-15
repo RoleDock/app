@@ -1,0 +1,60 @@
+// Shared palette: geometry and typography stay in the existing screen styles.
+:root {
+  color-scheme: light;
+  --page-background: #e9eeea;
+  --surface-card: #ffffff;
+  --surface-input: #ffffff;
+  --surface-subtle: #f3f6f3;
+  --text-primary: #1d2925;
+  --text-secondary: #52645a;
+  --text-muted: #63736a;
+  --border-default: #d4dfd7;
+  --border-control: #82958a;
+  --accent: #245744;
+  --accent-heading: #173f35;
+  --accent-soft: #edf4f0;
+  --accent-soft-hover: #dce9e0;
+  --button-primary: #214f42;
+  --button-primary-hover: #173f35;
+  --text-on-accent: #ffffff;
+  --brand-warm: #9b4f2c;
+  --brand-dot: #e37b4d;
+  --focus-ring: #2f705b;
+  --danger: #aa372a;
+  --danger-soft: #fff0ec;
+  --success: #205b43;
+  --success-soft: #e0f0e6;
+  --warning: #344b3e;
+  --warning-soft: #e3eae5;
+  --shadow-color: #19322a12;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page-background: #171e1c;
+  --surface-card: #212b27;
+  --surface-input: #19231f;
+  --surface-subtle: #29352f;
+  --text-primary: #f0f3f1;
+  --text-secondary: #d5ded9;
+  --text-muted: #c2cfc7;
+  --border-default: #45594c;
+  --border-control: #71897b;
+  --accent: #bce8ce;
+  --accent-heading: #d7efdf;
+  --accent-soft: #304b3d;
+  --accent-soft-hover: #34523f;
+  --button-primary: #a0d6b8;
+  --button-primary-hover: #bee5cf;
+  --text-on-accent: #172c22;
+  --brand-warm: #f0b99e;
+  --brand-dot: #e6a180;
+  --focus-ring: #a0d6b8;
+  --danger: #ffc6bb;
+  --danger-soft: #442e2a;
+  --success: #c0e8cd;
+  --success-soft: #293f32;
+  --warning: #efdabd;
+  --warning-soft: #39342b;
+  --shadow-color: #09120d33;
+}
