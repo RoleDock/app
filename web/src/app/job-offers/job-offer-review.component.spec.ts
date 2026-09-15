@@ -134,7 +134,35 @@ describe('Job offer review', () => {
     expect(service.review).toHaveBeenCalledWith(saved.id, { action: 'BYPASS' });
     result.next({ ...saved, reviewBypassedAt: '2026-09-10T01:00:00Z' }); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Analyse automatique — non vérifiée');
+    expect(fixture.nativeElement.textContent).not.toContain('Offre validée');
+    expect(fixture.nativeElement.querySelector('.notice.success')).toBeNull();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/job-offers', saved.id]);
+  });
+  it.each([false, 'reject'])('retries bypass navigation (%s) without another review write', async outcome => {
+    const navigate = vi.mocked(TestBed.inject(Router).navigate);
+    if (outcome === 'reject') navigate.mockRejectedValueOnce(new Error('navigation failed'));
+    else navigate.mockResolvedValueOnce(false);
+    button('Continuer sans vérifier').click();
+    result.next({ ...saved, reviewBypassedAt: '2026-09-10T01:00:00Z' }); result.complete();
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Réessayez pour ouvrir l’offre');
+    expect(fixture.nativeElement.textContent).not.toContain('Offre validée');
+    button('Continuer sans vérifier').click();
+    await fixture.whenStable();
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(service.review).toHaveBeenCalledOnce();
+  });
+  it.each(['CONFIRMED', 'CORRECTED'] as const)('reviews a reloaded bypassed offer as %s', async reviewStatus => {
+    const bypassed = { ...structuredClone(saved), reviewBypassedAt: '2026-09-10T01:00:00Z' };
+    service.get.mockReturnValue(of(bypassed));
+    fixture.componentInstance.load(); fixture.detectChanges(); await fixture.whenStable();
+    if (reviewStatus === 'CORRECTED') await input('company', 'Later correction');
+    button(reviewStatus === 'CORRECTED' ? 'Valider les corrections' : 'Valider l’offre').click();
+    const command = service.review.mock.calls[0][1];
+    expect(command.action).toBe('SAVE');
+    result.next({ ...bypassed, extraction: command.extraction, reviewStatus }); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Analyse vérifiée');
+    expect(fixture.nativeElement.textContent).not.toContain('Analyse automatique — non vérifiée');
   });
   it('preserves unsaved edits on API error and allows retry', async () => {
     await input('company', 'Keep my edits');

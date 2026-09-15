@@ -68,10 +68,18 @@ class JobOfferReviewTests {
         review("SAVE", current()).andExpect(jsonPath("$.reviewStatus").value("CORRECTED"));
     }
     @Test void bypassPersistsDecisionAndAllowsLaterConfirmation() throws Exception {
+        var before = current();
         review("BYPASS", null).andExpect(status().isOk()).andExpect(jsonPath("$.reviewStatus").value("UNREVIEWED"))
                 .andExpect(jsonPath("$.reviewBypassedAt").isNotEmpty());
-        assertThat(jdbc.queryForObject("SELECT review_bypassed_at FROM job_offer WHERE id = ?", Object.class, id)).isNotNull();
+        var bypassedAt = jdbc.queryForObject("SELECT review_bypassed_at FROM job_offer WHERE id = ?", Object.class, id);
+        assertThat(bypassedAt).isNotNull();
+        assertThat(current()).isEqualTo(before);
+        review("BYPASS", null).andExpect(status().isOk()).andExpect(jsonPath("$.reviewStatus").value("UNREVIEWED"));
+        assertThat(current()).isEqualTo(before);
+        assertThat(jdbc.queryForObject("SELECT review_bypassed_at FROM job_offer WHERE id = ?", Object.class, id)).isEqualTo(bypassedAt);
         review("SAVE", current()).andExpect(jsonPath("$.reviewStatus").value("CONFIRMED"));
+        assertThat(current()).isEqualTo(before);
+        assertThat(jdbc.queryForObject("SELECT review_bypassed_at FROM job_offer WHERE id = ?", Object.class, id)).isEqualTo(bypassedAt);
         review("BYPASS", null).andExpect(status().isConflict());
     }
     @Test void bypassAllowsLaterCorrection() throws Exception {

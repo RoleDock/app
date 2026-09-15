@@ -207,10 +207,13 @@ repeating Save for that pending analysis returns the existing offer. A failed
 transaction retains the pending proposal for retry. Parent, missions and
 requirements commit together. Failed extraction cannot persist a partial offer.
 
-The Angular page `/job-offers/new` presents the proposal and allows Save without
-review. It preserves input on extraction/persistence failures, disables concurrent
-actions and invalidates the preview when input changes. Successful Save opens
-`/job-offers/{id}`, which fetches the persisted draft again on reload.
+The Angular page `/job-offers/new` automatically saves a successful analysis and
+opens `/job-offers/{id}/review`. It preserves input on extraction/persistence
+failures, disables concurrent actions and invalidates the analysis when input
+changes. A persistence retry reuses the analysis; a navigation retry reuses the
+saved offer without saving or calling the extractor again. Reloading or returning
+to the creation page does not automatically submit another analysis. Both the
+review and saved-offer pages fetch the persisted offer again on reload.
 New drafts show “Analyse automatique — vérification recommandée.”
 
 Original text, initial validated extraction snapshot, current values and review
@@ -243,6 +246,9 @@ cannot silently discard pending corrections.
   payload. It sets `reviewBypassedAt` once and leaves the status `UNREVIEWED`.
   The UI shows a concise inline warning and continues to the saved offer with
   “Analyse automatique — non vérifiée”. Bypass cannot discard pending edits.
+  If navigation fails, the review page keeps that unreviewed label and offers a
+  navigation retry without another review write. Only SAVE displays validation
+  success feedback.
 
 Reviewed labels are “Analyse vérifiée” and “Analyse vérifiée et corrigée”. They
 refer to the extraction review, not the advertisement's objective accuracy.

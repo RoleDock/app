@@ -13,7 +13,7 @@
       </section>
       @if (draft; as data) {
         <form #reviewForm="ngForm" (ngSubmit)="save()">
-          <fieldset [disabled]="saving()">
+          <fieldset [disabled]="saving() || navigating()">
             <section id="review-position" tabindex="-1" class="form-section"><div class="section-heading"><div><span class="step">01</span><h2>Le poste</h2></div></div>
               <div class="fields two-columns">
                 <label>Entreprise<input name="company" [(ngModel)]="data.company" /></label>
@@ -86,6 +86,7 @@
             </div>
             @if (saved.reviewStatus === 'UNREVIEWED') {
               <div class="notice"><p id="bypass-warning">L’analyse a été générée automatiquement et peut contenir des erreurs. Vous pouvez continuer maintenant et la vérifier plus tard.</p>
+                @if (navigationError()) { <p role="alert">{{ navigationError() }}</p> }
                 @if (dirty()) { <p>Enregistrez vos corrections avant de continuer.</p> }
                 <button type="button" class="secondary" aria-describedby="bypass-warning" [disabled]="saving() || dirty()" (click)="bypass()">Continuer sans vérifier</button>
               </div>
