@@ -4,12 +4,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrentExtraction, CurrentRequirement, JobOffer, ReviewCommand, reviewLabel } from './job-offer.models';
 import { JobOfferService } from './job-offer.service';
+import { JobOfferProgressComponent } from './job-offer-progress.component';
 import { groupRequirements } from './requirement-groups';
 import { labels } from './job-offer-preview.component';
 
 @Component({
   selector: 'app-job-offer-review',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, JobOfferProgressComponent],
   templateUrl: './job-offer-review.component.html',
   styleUrl: './job-offer-review.component.scss',
 })

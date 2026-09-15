@@ -49,10 +49,12 @@ describe('New job offer', () => {
   it('analyzes, automatically saves once and opens correction without an intermediate step', async () => {
     start();
     expect(text()).toContain('Analyse en cours');
+    expect(progress()).toContain('En cours');
     expect(service.analyze).toHaveBeenCalledWith('  Java requis\n', null);
     fixture.componentInstance.analyze();
     expect(service.analyze).toHaveBeenCalledOnce();
     finish();
+    expect(progress()).toContain('En cours');
     expect(service.save).toHaveBeenCalledExactlyOnceWith('analysis-id');
     expect(text()).toContain('Ouverture de la correction');
     expect(text()).not.toContain('brouillon');
@@ -69,12 +71,15 @@ describe('New job offer', () => {
     analysis$.error({ message: 'provider secret', status: 502 });
     fixture.detectChanges();
     expect(text()).toContain('Votre saisie est conservée');
+    expect(progress()).toContain('À réessayer');
     expect(text()).not.toContain('provider secret');
     expect(service.save).not.toHaveBeenCalled();
     expect(fixture.componentInstance.form.controls.originalText.value).toBe('  Java requis\n');
     analysis$ = new Subject<Analysis>();
     service.analyze.mockReturnValue(analysis$);
     fixture.componentInstance.analyze();
+    fixture.detectChanges();
+    expect(progress()).toContain('En cours');
     expect(service.analyze).toHaveBeenCalledTimes(2);
   });
 
@@ -83,6 +88,7 @@ describe('New job offer', () => {
     save$.error({ status: 500 });
     fixture.detectChanges();
     expect(text()).toContain('Votre saisie et le résultat sont conservés');
+    expect(progress()).toContain('À réessayer');
     expect(fixture.nativeElement.querySelector('textarea').disabled).toBe(false);
     expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
     save$ = new Subject<JobOffer>();
@@ -125,6 +131,8 @@ describe('New job offer', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(text()).toContain('Réessayez pour ouvrir la correction');
+    expect(progress()).toContain('Vérification');
+    expect(fixture.nativeElement.querySelectorAll('app-job-offer-progress li')[1].textContent).toContain('Terminée');
     fixture.componentInstance.analyze();
     await fixture.whenStable();
     expect(navigate).toHaveBeenCalledTimes(2);
@@ -152,6 +160,7 @@ describe('New job offer', () => {
   }
 
   function text(): string { return fixture.nativeElement.textContent; }
+  function progress(): string { return fixture.nativeElement.querySelector('app-job-offer-progress [aria-current="step"]').textContent; }
   function start() {
     fixture.componentInstance.form.controls.originalText.setValue('  Java requis\n');
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'));

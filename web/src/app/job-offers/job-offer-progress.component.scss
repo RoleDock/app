@@ -1,0 +1,18 @@
+:host { display: block; margin-bottom: 2rem; }
+ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; list-style: none; margin: 0; padding: 0; }
+li { display: flex; align-items: center; gap: .65rem; min-width: 0; padding-block: .65rem; border-bottom: 2px solid var(--border-default); color: var(--text-secondary); }
+.marker { display: grid; place-items: center; flex: 0 0 2rem; height: 2rem; border: 1px solid var(--border-control); border-radius: 50%; font-size: .85rem; }
+.caption { display: grid; gap: .2rem; min-width: 0; overflow-wrap: anywhere; }
+strong { font-size: .9rem; font-weight: 600; }
+.caption > span { font-size: .75rem; }
+.is-current { border-bottom-color: var(--accent); color: var(--accent); }
+.is-current .marker { border: 2px solid var(--accent); background: var(--accent-soft); }
+.completed .marker { background: var(--success-soft); color: var(--success); border-color: var(--success); }
+.bypassed .marker { border-style: dashed; background: var(--surface-subtle); }
+.error { color: var(--danger); border-bottom-color: var(--danger); }
+.error .marker { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+.processing-marker { position: relative; }
+.processing-marker::after { content: ''; position: absolute; inset: -5px; border: 2px solid transparent; border-top-color: var(--accent); border-radius: 50%; animation: progress-spin 1s linear infinite; }
+@keyframes progress-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .processing-marker::after { animation: none; } }
+@media (max-width: 700px) { ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1rem; } }
