@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Analysis, JobOffer, ReviewCommand } from './job-offer.models';
-import { AssessmentResponse } from './requirement-assessment.models';
+import { AssessmentResponse, OfferAnalysis } from './requirement-assessment.models';
 
 @Injectable({ providedIn: 'root' })
 export class JobOfferService {
@@ -20,5 +20,8 @@ export class JobOfferService {
   }
   assessments(id: string) {
     return this.http.get<AssessmentResponse>(`/api/job-offers/${encodeURIComponent(id)}/requirement-assessments`);
+  }
+  analysis(id: string) {
+    return this.http.get<OfferAnalysis>(`/api/job-offers/${encodeURIComponent(id)}/analysis`);
   }
 }

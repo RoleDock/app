@@ -72,6 +72,63 @@ class JobOfferControllerTests {
     }
 
     @Test
+    void analysisRecomputesFromProfileAndOfferWithoutProviderCalls() throws Exception {
+        var saved = service.save(new JobOfferService.Pending(UUID.randomUUID(), TEXT, null, java.time.Instant.now(), extraction()));
+        clearInvocations(extractor);
+        var skillId = UUID.randomUUID();
+        mvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"skills\":[{\"id\":\"" + skillId + "\",\"name\":\"Java\"}]}"))
+                .andExpect(status().isOk());
+        String url = "/api/job-offers/" + saved.id() + "/analysis";
+        mvc.perform(get(url)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverageScore").value(100))
+                .andExpect(jsonPath("$.reviewStatus").value("UNREVIEWED"))
+                .andExpect(jsonPath("$.recommendation").value("VERIFY_FIRST"))
+                .andExpect(jsonPath("$.requirementAssessments.length()").value(2))
+                .andExpect(jsonPath("$.contributions.length()").value(2));
+        mvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk());
+        mvc.perform(get(url)).andExpect(jsonPath("$.coverageScore").isEmpty());
+        jdbc.update("UPDATE job_requirement SET requirement_kind = 'CONTEXTUAL', hard_blocker_candidate = false, blocker_condition = null WHERE job_offer_id = ?", saved.id());
+        mvc.perform(get(url)).andExpect(jsonPath("$.coverageScore").isEmpty())
+                .andExpect(jsonPath("$.requirementAssessments[0].status").value("NOT_APPLICABLE"));
+        mvc.perform(get("/api/job-offers/" + saved.id())).andExpect(jsonPath("$.reviewStatus").value("UNREVIEWED"));
+        verifyNoInteractions(extractor);
+    }
+
+    @Test
+    void analysisPreservesBlockerReviewSafetyWithTheRealAssessmentEngine() throws Exception {
+        var extraction = new JobOfferExtraction(null, null, new Location(null, null, null),
+                new WorkArrangement(WorkArrangementType.UNKNOWN, null, null), ContractType.UNKNOWN, null, null, List.of(),
+                List.of(new Requirement("Credential Alpha mandatory", "Credential Alpha", RequirementCategory.CERTIFICATION,
+                        RequirementKind.REQUIRED, Centrality.CORE, Explicitness.EXPLICIT, true, "Credential Alpha", null, ExtractionConfidence.HIGH)));
+        var saved = service.save(new JobOfferService.Pending(UUID.randomUUID(), "Fictional credential offer", null, java.time.Instant.now(), extraction));
+        clearInvocations(extractor);
+        mvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content("{\"certificationsComplete\":true}"))
+                .andExpect(status().isOk());
+        String url = "/api/job-offers/" + saved.id() + "/analysis";
+        mvc.perform(get(url)).andExpect(status().isOk()).andExpect(jsonPath("$.recommendation").value("VERIFY_FIRST"))
+                .andExpect(jsonPath("$.eligibility").value("ELIGIBLE_WITH_CONSTRAINT"))
+                .andExpect(jsonPath("$.criticalGaps[0].label").value("Credential Alpha"));
+        jdbc.update("UPDATE job_offer SET review_status = 'CONFIRMED' WHERE id = ?", saved.id());
+        mvc.perform(get(url)).andExpect(jsonPath("$.recommendation").value("SKIP_CONFIRMED_BLOCKER"))
+                .andExpect(jsonPath("$.eligibility").value("NOT_ELIGIBLE"));
+        verifyNoInteractions(extractor);
+    }
+
+    @Test
+    void analysisHandlesEmptyOfferAndInvalidIdentifiers() throws Exception {
+        var empty = new JobOfferExtraction(null, null, new Location(null, null, null),
+                new WorkArrangement(WorkArrangementType.UNKNOWN, null, null), ContractType.UNKNOWN, null, null, List.of(), List.of());
+        var saved = service.save(new JobOfferService.Pending(UUID.randomUUID(), "Fictional empty offer", null, java.time.Instant.now(), empty));
+        mvc.perform(get("/api/job-offers/" + saved.id() + "/analysis")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverageScore").isEmpty()).andExpect(jsonPath("$.recommendation").value("VERIFY_FIRST"));
+        mvc.perform(get("/api/job-offers/" + UUID.randomUUID() + "/analysis")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/job-offers/invalid/analysis")).andExpect(status().isBadRequest());
+        verifyNoInteractions(extractor);
+    }
+
+    @Test
     void persistsAndRetrievesCompleteDraftWithoutTheAnalysisSession() throws Exception {
         var session = new MockHttpSession();
         String id = analyze(session, "https://example.org/vacancy");

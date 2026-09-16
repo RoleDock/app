@@ -13,3 +13,15 @@ export interface AssessmentResponse {
   assessedOn: string;
   assessments: RequirementAssessment[];
 }
+
+export interface OfferAnalysis {
+  assessedOn: string;
+  reviewStatus: 'UNREVIEWED' | 'CONFIRMED' | 'CORRECTED';
+  coverageScore: number | null;
+  eligibility: 'ELIGIBLE' | 'ELIGIBLE_WITH_CONSTRAINT' | 'NOT_ELIGIBLE' | 'UNKNOWN';
+  recommendation: 'APPLY_NOW' | 'APPLY_WITH_BRIDGE' | 'STRETCH' | 'VERIFY_FIRST' | 'SKIP_CONFIRMED_BLOCKER';
+  criticalGaps: { requirementId: string; label: string; status: RequirementAssessment['status']; rationale: string }[];
+  uncertainty: { level: 'LOW' | 'MEDIUM' | 'HIGH'; reasons: string[] };
+  requirementAssessments: RequirementAssessment[];
+  contributions: { requirementId: string; weight: number; coverage: number | null; included: boolean; duplicateOf: string | null; rationale: string }[];
+}

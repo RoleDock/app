@@ -29,12 +29,13 @@ has intentionally bypassed review. Later confirmation/correction is shown as
 reviewed regardless of the retained timestamp. Manually added requirements have
 `USER_ADDED` provenance and no automatic quotation or extraction confidence.
 
-Future matching may use unreviewed data with a warning, but unreviewed extraction
+Matching uses unreviewed data with a warning, but unreviewed extraction
 alone must never produce a definitive elimination recommendation. An unreviewed
 blocker requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`. Bypassing does not
 relax this rule. Individual matching is now implemented as described in
-[requirement assessments](../architecture/requirement-assessments.md); global scoring
-and recommendation remain unimplemented.
+[requirement assessments](../architecture/requirement-assessments.md); global aggregation is implemented in
+[scoring rules](../architecture/scoring.md), with separate coverage, eligibility,
+critical gaps, uncertainty and recommendation.
 
 The original advertisement remains intact, the initial validated extraction is
 retained separately, and current structured values can evolve later without
@@ -60,8 +61,10 @@ Absence of evidence is not evidence of absence. UNKNOWN is the default when the
 profile is insufficient. An absent certification yields MISSING only when the
 candidate explicitly declares the certification list complete; existing profiles
 default to incomplete. An unreviewed blocker can only be POSSIBLE_BLOCK. A
-one-year experience shortfall is not an automatic blocker. These individual
-assessments do not calculate a global score or recommendation.
+one-year experience shortfall is not an automatic blocker. Individual assessments feed a separate, deterministic aggregation layer.
+Coverage weights and recommendation thresholds are provisional v0 hypotheses;
+UNKNOWN is excluded from the denominator and increases uncertainty. A low score
+is not ineligibility, and a high score never overrides a confirmed blocker.
 
 ## CV keywords
 

@@ -269,4 +269,6 @@ matching without provider calls. Matching must use
 `reviewStatus` as the authority: `UNREVIEWED` data may continue with a warning, but
 cannot alone justify definitive elimination. A blocker from unreviewed extraction
 requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`, even after explicit bypass.
-Individual blocker safety is implemented; global recommendation remains future work.
+Individual blocker safety and the separate [offer aggregation layer](scoring.md)
+are implemented. `GET /api/job-offers/{id}/analysis` recomputes coverage, eligibility,
+critical gaps, uncertainty and the global recommendation from the current inputs.
