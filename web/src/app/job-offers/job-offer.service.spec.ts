@@ -39,6 +39,11 @@ describe('JobOfferService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({});
   });
+  it('retrieves offer analysis with an encoded identifier', () => {
+    service.analysis('offer/id ?#').subscribe();
+    const req = http.expectOne('/api/job-offers/offer%2Fid%20%3F%23/analysis');
+    expect(req.request.method).toBe('GET'); req.flush({});
+  });
   it('retrieves assessments with GET and an encoded offer identifier', () => {
     const response: AssessmentResponse = { assessedOn: '2026-09-16', assessments: [] };
     const received = vi.fn();

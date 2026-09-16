@@ -24,6 +24,12 @@ class JobOfferController {
         this.assessments = assessments;
     }
 
+    @GetMapping("/{id}/analysis")
+    ResponseEntity<?> analysis(@PathVariable UUID id) {
+        return assessments.analyze(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElseGet(() ->
+                ResponseEntity.status(404).body(new ApiError("OFFER_NOT_FOUND", "Offre introuvable.", Map.of())));
+    }
+
     @GetMapping("/{id}/requirement-assessments")
     ResponseEntity<?> assessments(@PathVariable UUID id) {
         return assessments.get(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElseGet(() ->

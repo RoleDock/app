@@ -144,24 +144,15 @@ and enforces that provenance distinction with a database constraint. Migration
 On-demand result keyed by requirement UUID, with status, transfer relation,
 evidence strength, assessment confidence, eligibility effect, typed candidate
 evidence references and explanations. See [deterministic assessments](requirement-assessments.md).
-No assessment table or global score is introduced.
+No assessment table is introduced.
 
-The following historical analysis/matching entities remain conceptual and unimplemented.
+### `OfferAnalysis` (implemented, not persisted)
 
-### `OfferAnalysis`
-
-- `id`
-- `job_offer_id`
-- `score`
-- `summary`
-
-### `RequirementMatch`
-
-- `id`
-- `offer_analysis_id`
-- `job_requirement_id`
-- `result`
-- `explanation`
+On-demand aggregate of current offer/profile assessments: coverageScore (nullable),
+eligibility, recommendation, criticalGaps, uncertainty, requirementAssessments,
+per-requirement contributions, reviewStatus and assessedOn. No identity, table or
+stored score: profile and offer edits are reflected on the next request without
+cache invalidation. See [scoring rules](scoring.md).
 
 ## Applications and generated content
 

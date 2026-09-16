@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { JobOfferService } from './job-offer.service';
 import { JobOffer } from './job-offer.models';
 import { labels } from './job-offer-preview.component';
-import { AssessmentResponse } from './requirement-assessment.models';
+import { OfferAnalysis } from './requirement-assessment.models';
 import { groupRequirements } from './requirement-groups';
 
 @Component({
@@ -13,11 +13,31 @@ import { groupRequirements } from './requirement-groups';
       <div class="section-heading"><h2 id="matching-title">Votre profil face aux exigences</h2>
         <button type="button" class="secondary" [disabled]="loading()" (click)="load()">Actualiser</button></div>
       <p>Évaluation des informations enregistrées dans votre profil. Une information absente reste à vérifier.</p>
-      @if (offer().reviewStatus === 'UNREVIEWED') { <p class="notice">Analyse non vérifiée : les conditions bloquantes nécessitent une vérification.</p> }
+      @if ((result()?.reviewStatus ?? offer().reviewStatus) === 'UNREVIEWED') { <p class="notice">Analyse non vérifiée : les conditions bloquantes nécessitent une vérification.</p> }
       @if (loading()) { <p role="status">Évaluation en cours…</p> }
       @if (error()) { <p role="alert">Impossible de charger l’évaluation. Réessayez avec le bouton Actualiser.</p> }
       @if (result(); as response) {
         <p>Évaluation au {{ response.assessedOn }}</p>
+        <section class="analysis-summary item-card" aria-label="Synthèse de l’analyse">
+          <p class="coverage"><strong>Couverture des exigences : {{ response.coverageScore === null ? 'Indisponible' : numberFormat.format(response.coverageScore) + ' %' }}</strong></p>
+          <p>Mesure la couverture des exigences connues de l’offre, pas vos chances d’obtenir un entretien.</p>
+          <p>Éligibilité : {{ eligibilityLabels[response.eligibility] }}</p>
+          <p class="recommendation"><strong>{{ recommendationLabels[response.recommendation] }}</strong></p>
+          @if (response.criticalGaps.length) {
+            <section class="critical-gaps notice" aria-label="Points critiques">
+              <h3>Points critiques</h3>
+              <ul>@for (gap of response.criticalGaps; track gap.requirementId) {
+                <li><strong>{{ gap.label }}</strong> — requis / cœur — {{ statusLabels[gap.status] }}<br>{{ gap.rationale }}</li>
+              }</ul>
+            </section>
+          }
+          <section class="uncertainty" aria-label="Informations à vérifier">
+            <h3>Informations à vérifier</h3>
+            <p>Incertitude : {{ uncertaintyLabels[response.uncertainty.level] }}. Cet indicateur décrit les informations incomplètes ou ambiguës.</p>
+            <ul>@for (reason of response.uncertainty.reasons; track reason) { <li>{{ reason }}</li> }
+              @empty { <li>Aucune incertitude signalée par les règles actuelles.</li> }</ul>
+          </section>
+        </section>
         @for (group of groups(); track group.category) {
           <h3>{{ categoryLabels[group.category] ?? 'Autre' }}</h3>
           <div class="assessment-grid">
@@ -28,6 +48,11 @@ import { groupRequirements } from './requirement-groups';
                   <p>{{ kindLabels[entry.requirement.requirementKind] ?? 'Non précisé' }} · <strong>{{ statusLabels[assessment.status] }}</strong></p>
                   @if (assessment.transferRelation !== 'NONE') { <p>{{ relationLabels[assessment.transferRelation] }}</p> }
                   <p>{{ assessment.rationale }}</p>
+                  @if (contributionsById().get(assessment.requirementId); as contribution) {
+                    <p class="evidence-meta">{{ contribution.rationale }}
+                      @if (contribution.included) { Poids : {{ numberFormat.format(contribution.weight) }} · Couverture : {{ contribution.coverage === null ? 'Indisponible' : numberFormat.format(contribution.coverage) }} (sur 1). }
+                    </p>
+                  }
                   <p class="evidence-meta">Preuve : {{ strengthLabels[assessment.evidenceStrength] }} · Confiance : {{ confidenceLabels[assessment.assessmentConfidence] }}</p>
                   @if (assessment.eligibilityEffect !== 'NONE') {
                     <p class="notice">{{ assessment.eligibilityEffect === 'BLOCK' ? 'Incompatibilité explicite avec cette exigence' : 'Blocage possible — à vérifier' }}</p>
@@ -53,6 +78,9 @@ import { groupRequirements } from './requirement-groups';
     h4 { font-size: 1rem; margin: 0 0 .75rem; }
     ul { padding-left: 1.25rem; }
     .evidence-meta { font-size: .875rem; }
+    .analysis-summary { margin: 1rem 0 1.5rem; }
+    .coverage { font-size: 1.15rem; }
+    .critical-gaps, .uncertainty { margin-top: 1rem; padding-top: .5rem; border-top: 1px solid var(--border-default); }
   `,
 })
 export class RequirementAssessmentsComponent implements OnInit {
@@ -61,9 +89,14 @@ export class RequirementAssessmentsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   readonly loading = signal(false);
   readonly error = signal(false);
-  readonly result = signal<AssessmentResponse | null>(null);
+  readonly result = signal<OfferAnalysis | null>(null);
   readonly groups = computed(() => groupRequirements(this.offer().extraction.requirements));
-  readonly byId = computed(() => new Map(this.result()?.assessments.map(a => [a.requirementId, a]) ?? []));
+  readonly byId = computed(() => new Map(this.result()?.requirementAssessments.map(a => [a.requirementId, a]) ?? []));
+  readonly contributionsById = computed(() => new Map(this.result()?.contributions.map(c => [c.requirementId, c]) ?? []));
+  readonly numberFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
+  readonly eligibilityLabels = { ELIGIBLE: 'Aucun blocage identifié', ELIGIBLE_WITH_CONSTRAINT: 'Sous réserve de vérification', NOT_ELIGIBLE: 'Critère bloquant confirmé', UNKNOWN: 'Indéterminée' };
+  readonly recommendationLabels = { APPLY_NOW: 'Candidature pertinente', APPLY_WITH_BRIDGE: 'Candidature pertinente avec points à expliquer', STRETCH: 'Candidature ambitieuse', VERIFY_FIRST: 'À vérifier avant de décider', SKIP_CONFIRMED_BLOCKER: 'Critère bloquant confirmé' };
+  readonly uncertaintyLabels = { LOW: 'faible', MEDIUM: 'modérée', HIGH: 'élevée' };
   readonly categoryLabels: Partial<Record<string, string>> = labels;
   readonly kindLabels: Partial<Record<string, string>> = labels;
   readonly statusLabels = { MATCH: 'Couvert', PARTIAL: 'Partiellement couvert', MISSING: 'Non couvert', UNKNOWN: 'À vérifier', NOT_APPLICABLE: 'Non applicable' };
@@ -75,7 +108,7 @@ export class RequirementAssessmentsComponent implements OnInit {
   load(): void {
     if (this.loading()) return;
     this.loading.set(true); this.error.set(false); this.result.set(null);
-    this.service.assessments(this.offer().id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.service.analysis(this.offer().id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: result => { this.result.set(result); this.loading.set(false); },
       error: () => { this.error.set(true); this.loading.set(false); },
     });

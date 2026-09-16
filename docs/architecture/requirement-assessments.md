@@ -16,8 +16,9 @@ No requirements produces an empty list. DTOs never expose JPA entities.
 
 Results are recomputed, not persisted. Profile edits and offer corrections therefore
 need no cache invalidation or assessment versioning. The saved-offer screen loads
-these results and offers an explicit refresh. There is no global score, weighting,
-eligibility aggregation, recommendation or percentage.
+these results and offers an explicit refresh. The saved-offer view now uses the separate
+[offer analysis layer](scoring.md) to display global coverage, eligibility, gaps,
+uncertainty and recommendation above these unchanged individual assessments.
 
 ## Result contract
 
