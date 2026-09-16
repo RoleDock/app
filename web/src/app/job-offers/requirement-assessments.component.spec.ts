@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
 import { RequirementAssessmentsComponent } from './requirement-assessments.component';
 import { JobOfferService } from './job-offer.service';
-import { JobOffer } from './job-offer.models';
+import { CurrentRequirement, JobOffer } from './job-offer.models';
 import { AssessmentResponse } from './requirement-assessment.models';
 
 describe('Requirement evidence view', () => {
@@ -41,6 +41,19 @@ describe('Requirement evidence view', () => {
     pending.next(result); pending.complete(); fixture.detectChanges();
     fixture.nativeElement.querySelector('button').click(); fixture.detectChanges();
     expect(service.assessments).toHaveBeenCalledTimes(2);
+  });
+  it.each([
+    ['OTHER', 'UNKNOWN'],
+    ['UNRECOGNIZED_CATEGORY', 'UNRECOGNIZED_KIND'],
+  ])('shows readable labels for category %s and kind %s', (category, requirementKind) => {
+    // The second case represents a runtime API value not yet known by this client.
+    const requirement = { ...offer.extraction.requirements[0],
+      category: category as CurrentRequirement['category'],
+      requirementKind: requirementKind as CurrentRequirement['requirementKind'] };
+    const fixture = render({ ...offer, extraction: { ...offer.extraction, requirements: [requirement] } });
+    expect(fixture.nativeElement.querySelector('h3').textContent.trim()).toBe('Autre');
+    expect(fixture.nativeElement.querySelector('article p').textContent).toContain('Non précisé');
+    expect(fixture.nativeElement.querySelector('article strong').textContent).toBe('À vérifier');
   });
   it('preserves retry after failure and displays an empty offer', () => {
     service.assessments.mockReturnValueOnce(throwError(() => new Error('offline')));

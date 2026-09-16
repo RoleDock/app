@@ -19,13 +19,13 @@ import { groupRequirements } from './requirement-groups';
       @if (result(); as response) {
         <p>Évaluation au {{ response.assessedOn }}</p>
         @for (group of groups(); track group.category) {
-          <h3>{{ categoryLabels[group.category] }}</h3>
+          <h3>{{ categoryLabels[group.category] ?? 'Autre' }}</h3>
           <div class="assessment-grid">
             @for (entry of group.entries; track entry.index) {
               @if (byId().get(entry.requirement.id ?? ''); as assessment) {
                 <article class="item-card" [attr.data-status]="assessment.status">
                   <h4>{{ entry.requirement.canonicalLabel }}</h4>
-                  <p>{{ kindLabels[entry.requirement.requirementKind] }} · <strong>{{ statusLabels[assessment.status] }}</strong></p>
+                  <p>{{ kindLabels[entry.requirement.requirementKind] ?? 'Non précisé' }} · <strong>{{ statusLabels[assessment.status] }}</strong></p>
                   @if (assessment.transferRelation !== 'NONE') { <p>{{ relationLabels[assessment.transferRelation] }}</p> }
                   <p>{{ assessment.rationale }}</p>
                   <p class="evidence-meta">Preuve : {{ strengthLabels[assessment.evidenceStrength] }} · Confiance : {{ confidenceLabels[assessment.assessmentConfidence] }}</p>
@@ -64,8 +64,8 @@ export class RequirementAssessmentsComponent implements OnInit {
   readonly result = signal<AssessmentResponse | null>(null);
   readonly groups = computed(() => groupRequirements(this.offer().extraction.requirements));
   readonly byId = computed(() => new Map(this.result()?.assessments.map(a => [a.requirementId, a]) ?? []));
-  readonly categoryLabels = labels;
-  readonly kindLabels = labels;
+  readonly categoryLabels: Partial<Record<string, string>> = labels;
+  readonly kindLabels: Partial<Record<string, string>> = labels;
   readonly statusLabels = { MATCH: 'Couvert', PARTIAL: 'Partiellement couvert', MISSING: 'Non couvert', UNKNOWN: 'À vérifier', NOT_APPLICABLE: 'Non applicable' };
   readonly relationLabels = { EXACT: 'Correspondance exacte', EQUIVALENT: 'Équivalence explicite', ADJACENT: 'Compétence voisine', PREREQUISITE: 'Prérequis', NONE: '' };
   readonly strengthLabels = { STRONG: 'forte', MODERATE: 'modérée', WEAK: 'faible', NONE: 'aucune' };
