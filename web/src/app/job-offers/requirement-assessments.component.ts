@@ -19,21 +19,21 @@ import { groupRequirements } from './requirement-groups';
       @if (result(); as response) {
         <p>Évaluation au {{ response.assessedOn }}</p>
         <section class="analysis-summary item-card" aria-label="Synthèse de l’analyse">
-          <p class="coverage"><strong>Couverture des exigences : {{ response.coverageScore === null ? 'Indisponible' : numberFormat.format(response.coverageScore) + ' %' }}</strong></p>
+          <p class="coverage"><strong>Couverture des exigences : {{ response.coverageScore == null ? 'Indisponible' : numberFormat.format(response.coverageScore) + ' %' }}</strong></p>
           <p>Mesure la couverture des exigences connues de l’offre, pas vos chances d’obtenir un entretien.</p>
-          <p>Éligibilité : {{ eligibilityLabels[response.eligibility] }}</p>
-          <p class="recommendation"><strong>{{ recommendationLabels[response.recommendation] }}</strong></p>
+          <p>Éligibilité : {{ eligibilityLabels[response.eligibility] ?? 'Indéterminée' }}</p>
+          <p class="recommendation"><strong>{{ recommendationLabels[response.recommendation] ?? 'À vérifier avant de décider' }}</strong></p>
           @if (response.criticalGaps.length) {
             <section class="critical-gaps notice" aria-label="Points critiques">
               <h3>Points critiques</h3>
               <ul>@for (gap of response.criticalGaps; track gap.requirementId) {
-                <li><strong>{{ gap.label }}</strong> — requis / cœur — {{ statusLabels[gap.status] }}<br>{{ gap.rationale }}</li>
+                <li><strong>{{ gap.label }}</strong> — requis / cœur — {{ statusLabels[gap.status] ?? 'À vérifier' }}<br>{{ gap.rationale }}</li>
               }</ul>
             </section>
           }
           <section class="uncertainty" aria-label="Informations à vérifier">
             <h3>Informations à vérifier</h3>
-            <p>Incertitude : {{ uncertaintyLabels[response.uncertainty.level] }}. Cet indicateur décrit les informations incomplètes ou ambiguës.</p>
+            <p>Incertitude : {{ uncertaintyLabels[response.uncertainty.level] ?? 'non déterminée' }}. Cet indicateur décrit les informations incomplètes ou ambiguës.</p>
             <ul>@for (reason of response.uncertainty.reasons; track reason) { <li>{{ reason }}</li> }
               @empty { <li>Aucune incertitude signalée par les règles actuelles.</li> }</ul>
           </section>
@@ -45,22 +45,22 @@ import { groupRequirements } from './requirement-groups';
               @if (byId().get(entry.requirement.id ?? ''); as assessment) {
                 <article class="item-card" [attr.data-status]="assessment.status">
                   <h4>{{ entry.requirement.canonicalLabel }}</h4>
-                  <p>{{ kindLabels[entry.requirement.requirementKind] ?? 'Non précisé' }} · <strong>{{ statusLabels[assessment.status] }}</strong></p>
-                  @if (assessment.transferRelation !== 'NONE') { <p>{{ relationLabels[assessment.transferRelation] }}</p> }
+                  <p>{{ kindLabels[entry.requirement.requirementKind] ?? 'Non précisé' }} · <strong>{{ statusLabels[assessment.status] ?? 'À vérifier' }}</strong></p>
+                  @if (assessment.transferRelation !== 'NONE') { <p>{{ relationLabels[assessment.transferRelation] ?? 'Relation à vérifier' }}</p> }
                   <p>{{ assessment.rationale }}</p>
                   @if (contributionsById().get(assessment.requirementId); as contribution) {
                     <p class="evidence-meta">{{ contribution.rationale }}
                       @if (contribution.included) { Poids : {{ numberFormat.format(contribution.weight) }} · Couverture : {{ contribution.coverage === null ? 'Indisponible' : numberFormat.format(contribution.coverage) }} (sur 1). }
                     </p>
                   }
-                  <p class="evidence-meta">Preuve : {{ strengthLabels[assessment.evidenceStrength] }} · Confiance : {{ confidenceLabels[assessment.assessmentConfidence] }}</p>
+                  <p class="evidence-meta">Preuve : {{ strengthLabels[assessment.evidenceStrength] ?? 'non précisée' }} · Confiance : {{ confidenceLabels[assessment.assessmentConfidence] ?? 'non précisée' }}</p>
                   @if (assessment.eligibilityEffect !== 'NONE') {
                     <p class="notice">{{ assessment.eligibilityEffect === 'BLOCK' ? 'Incompatibilité explicite avec cette exigence' : 'Blocage possible — à vérifier' }}</p>
                   }
                   @if (assessment.attention) { <p>{{ assessment.attention }}</p> }
                   <ul>
                     @for (evidence of assessment.evidence; track evidence.type + evidence.id) {
-                      <li>{{ evidenceLabels[evidence.type] }} : {{ evidence.label }}</li>
+                      <li>{{ evidenceLabels[evidence.type] ?? 'Élément du profil' }} : {{ evidence.label }}</li>
                     } @empty { <li>Aucune preuve référencée.</li> }
                   </ul>
                 </article>
@@ -94,16 +94,16 @@ export class RequirementAssessmentsComponent implements OnInit {
   readonly byId = computed(() => new Map(this.result()?.requirementAssessments.map(a => [a.requirementId, a]) ?? []));
   readonly contributionsById = computed(() => new Map(this.result()?.contributions.map(c => [c.requirementId, c]) ?? []));
   readonly numberFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
-  readonly eligibilityLabels = { ELIGIBLE: 'Aucun blocage identifié', ELIGIBLE_WITH_CONSTRAINT: 'Sous réserve de vérification', NOT_ELIGIBLE: 'Critère bloquant confirmé', UNKNOWN: 'Indéterminée' };
-  readonly recommendationLabels = { APPLY_NOW: 'Candidature pertinente', APPLY_WITH_BRIDGE: 'Candidature pertinente avec points à expliquer', STRETCH: 'Candidature ambitieuse', VERIFY_FIRST: 'À vérifier avant de décider', SKIP_CONFIRMED_BLOCKER: 'Critère bloquant confirmé' };
-  readonly uncertaintyLabels = { LOW: 'faible', MEDIUM: 'modérée', HIGH: 'élevée' };
+  readonly eligibilityLabels: Partial<Record<string, string>> = { ELIGIBLE: 'Aucun blocage identifié', ELIGIBLE_WITH_CONSTRAINT: 'Sous réserve de vérification', NOT_ELIGIBLE: 'Critère bloquant confirmé', UNKNOWN: 'Indéterminée' };
+  readonly recommendationLabels: Partial<Record<string, string>> = { APPLY_NOW: 'Candidature pertinente', APPLY_WITH_BRIDGE: 'Candidature pertinente avec points à expliquer', STRETCH: 'Candidature ambitieuse', VERIFY_FIRST: 'À vérifier avant de décider', SKIP_CONFIRMED_BLOCKER: 'Critère bloquant confirmé' };
+  readonly uncertaintyLabels: Partial<Record<string, string>> = { LOW: 'faible', MEDIUM: 'modérée', HIGH: 'élevée' };
   readonly categoryLabels: Partial<Record<string, string>> = labels;
   readonly kindLabels: Partial<Record<string, string>> = labels;
-  readonly statusLabels = { MATCH: 'Couvert', PARTIAL: 'Partiellement couvert', MISSING: 'Non couvert', UNKNOWN: 'À vérifier', NOT_APPLICABLE: 'Non applicable' };
-  readonly relationLabels = { EXACT: 'Correspondance exacte', EQUIVALENT: 'Équivalence explicite', ADJACENT: 'Compétence voisine', PREREQUISITE: 'Prérequis', NONE: '' };
-  readonly strengthLabels = { STRONG: 'forte', MODERATE: 'modérée', WEAK: 'faible', NONE: 'aucune' };
-  readonly confidenceLabels = { HIGH: 'élevée', MEDIUM: 'modérée', LOW: 'faible' };
-  readonly evidenceLabels = { PROFILE_SKILL: 'Compétence', EXPERIENCE: 'Expérience', EDUCATION: 'Formation', LANGUAGE: 'Langue', CERTIFICATION: 'Certification', CERTIFICATION_LIST: 'Certifications du profil', SIGNIFICANT_PROJECT: 'Projet' };
+  readonly statusLabels: Partial<Record<string, string>> = { MATCH: 'Couvert', PARTIAL: 'Partiellement couvert', MISSING: 'Non couvert', UNKNOWN: 'À vérifier', NOT_APPLICABLE: 'Non applicable' };
+  readonly relationLabels: Partial<Record<string, string>> = { EXACT: 'Correspondance exacte', EQUIVALENT: 'Équivalence explicite', ADJACENT: 'Compétence voisine', PREREQUISITE: 'Prérequis', NONE: '' };
+  readonly strengthLabels: Partial<Record<string, string>> = { STRONG: 'forte', MODERATE: 'modérée', WEAK: 'faible', NONE: 'aucune' };
+  readonly confidenceLabels: Partial<Record<string, string>> = { HIGH: 'élevée', MEDIUM: 'modérée', LOW: 'faible' };
+  readonly evidenceLabels: Partial<Record<string, string>> = { PROFILE_SKILL: 'Compétence', EXPERIENCE: 'Expérience', EDUCATION: 'Formation', LANGUAGE: 'Langue', CERTIFICATION: 'Certification', CERTIFICATION_LIST: 'Certifications du profil', SIGNIFICANT_PROJECT: 'Projet' };
   ngOnInit(): void { this.load(); }
   load(): void {
     if (this.loading()) return;

@@ -97,11 +97,14 @@ how many are REQUIRED), LOW assessment confidence, unknown kind/centrality, and
 unsupported PARTIAL coverage. Add separate reasons for possible blockers,
 UNREVIEWED extraction, absent profile and zero denominator.
 
-HIGH if any: absent profile, zero denominator, unresolved REQUIRED CORE (or
-unknown centrality), possible blocker, eligibility-critical unknown, at least 3
+HIGH if any: absent profile, zero denominator, unknown centrality on any applicable
+non-contextual requirement (even MATCH), unresolved REQUIRED CORE, possible blocker,
+eligibility-critical unknown, at least 3
 UNKNOWN assessments or at least 3 LOW-confidence assessments. MEDIUM if another
 reason exists; LOW otherwise. “Unresolved” means UNKNOWN or unsupported PARTIAL.
-No numeric probability is calculated. MEDIUM assessment confidence alone does
+Unknown centrality remains excluded from coverage and forces VERIFY_FIRST even
+when the known coverage is 100%. Unknown kind alone remains MEDIUM when no HIGH
+condition applies. No numeric probability is calculated. MEDIUM assessment confidence alone does
 not raise this information-completeness indicator; it remains visible in details.
 
 ## Eligibility, in precedence order
@@ -189,3 +192,15 @@ The saved-offer summary and individual evidence were inspected in light/dark
 modes, desktop and a 390px mobile viewport; no horizontal overflow was observed.
 French decimal formatting is covered by a UI test. The stepper already used
 “À suivre” before this slice and its existing regression test remains green.
+
+### Review corrections (2026-09-16)
+
+Unknown centrality on an applicable requirement now yields HIGH uncertainty even
+when its assessment is MATCH and the remaining known coverage is 100%; contextual
+and NOT_APPLICABLE rows remain ignored. Regressions cover both cases. Partial
+transfer contribution rationales use French phrases instead of enum tokens.
+The UI supplies neutral French labels for unrecognized enum values and displays
+omitted/null scores as unavailable, while retaining evidence and critical gaps.
+The extraction documentation now links to the implemented aggregation endpoint.
+Validation after these corrections: 164 backend tests passed on both H2 and
+isolated PostgreSQL 17; 90 frontend tests and the production build passed.

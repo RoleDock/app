@@ -35,6 +35,7 @@ public class OfferAnalysisService {
         var contributions = new ArrayList<Contribution>();
         var gaps = new ArrayList<CriticalGap>();
         double numerator = 0, denominator = 0;
+        int unknownCentrality = 0;
         int unknown = 0, requiredUnknown = 0, lowConfidence = 0, classificationUnknown = 0, unsupported = 0, requiredGaps = 0;
         boolean importantUnknown = false, confirmedBlock = false, possibleBlock = false, eligibilityUnknown = false;
         for (var r : requirements) {
@@ -65,6 +66,7 @@ public class OfferAnalysisService {
             if (a.status() == Status.PARTIAL && coverage.value() == null) unsupported++;
             if (a.assessmentConfidence() == AssessmentConfidence.LOW) lowConfidence++;
             if (r.requirementKind() == RequirementKind.UNKNOWN || r.centrality() == Centrality.UNKNOWN) classificationUnknown++;
+            if (r.centrality() == Centrality.UNKNOWN) unknownCentrality++;
             importantUnknown |= required && (core || r.centrality() == Centrality.UNKNOWN) && unresolved;
             if (required && (a.status() == Status.MISSING || a.status() == Status.PARTIAL)) requiredGaps++;
             if (required && core && (a.status() == Status.MISSING
@@ -91,7 +93,7 @@ public class OfferAnalysisService {
         if (profile == null) reasons.add("Aucun profil candidat enregistré.");
         if (denominator == 0) reasons.add("Aucune exigence pondérée évaluable : couverture indisponible.");
         var level = profile == null || denominator == 0 || importantUnknown || possibleBlock || eligibilityUnknown
-                || unknown >= MANY_UNCERTAINTIES || lowConfidence >= MANY_UNCERTAINTIES
+                || unknownCentrality > 0 || unknown >= MANY_UNCERTAINTIES || lowConfidence >= MANY_UNCERTAINTIES
                 ? UncertaintyLevel.HIGH : reasons.isEmpty() ? UncertaintyLevel.LOW : UncertaintyLevel.MEDIUM;
         var eligibility = confirmedBlock ? Eligibility.NOT_ELIGIBLE
                 : profile == null || requirements.isEmpty() || eligibilityUnknown ? Eligibility.UNKNOWN

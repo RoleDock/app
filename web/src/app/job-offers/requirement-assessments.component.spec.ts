@@ -95,6 +95,30 @@ describe('Requirement evidence view', () => {
     expect(fixture.nativeElement.querySelector('article p').textContent).toContain('Non précisé');
     expect(fixture.nativeElement.querySelector('article strong').textContent).toBe('À vérifier');
   });
+  it('uses readable fallback labels for future API enum values without losing evidence', () => {
+    const unknown = 'FUTURE_VALUE';
+    service.analysis.mockReturnValueOnce(of({ ...result,
+      eligibility: unknown, recommendation: unknown, uncertainty: { level: unknown, reasons: ['À confirmer.'] },
+      criticalGaps: [{ ...result.criticalGaps[0], status: unknown }],
+      requirementAssessments: [{ ...result.requirementAssessments[0], status: unknown, transferRelation: unknown,
+        evidenceStrength: unknown, assessmentConfidence: unknown,
+        evidence: [{ type: unknown, id: 'e1', label: 'Preuve fictive conservée' }] }],
+    }));
+    const element = render().nativeElement;
+    expect(element.querySelector('.analysis-summary').textContent).toContain('Éligibilité : Indéterminée');
+    expect(element.querySelector('.recommendation').textContent).toContain('À vérifier avant de décider');
+    expect(element.querySelector('.uncertainty').textContent).toContain('Incertitude : non déterminée');
+    expect(element.querySelector('.critical-gaps').textContent).toContain('À vérifier');
+    expect(element.querySelector('article').textContent).toContain('Relation à vérifier');
+    expect(element.querySelector('article').textContent).toContain('Preuve : non précisée');
+    expect(element.querySelector('article').textContent).toContain('Confiance : non précisée');
+    expect(element.querySelector('article').textContent).toContain('Élément du profil : Preuve fictive conservée');
+    expect(element.textContent).not.toContain(unknown);
+  });
+  it('renders an unavailable score when the runtime response omits it', () => {
+    service.analysis.mockReturnValueOnce(of({ ...result, coverageScore: undefined }));
+    expect(render().nativeElement.querySelector('.coverage').textContent).toContain('Indisponible');
+  });
   it('preserves retry after failure and displays an empty offer', () => {
     service.analysis.mockReturnValueOnce(throwError(() => new Error('offline')));
     const fixture = render({ ...offer, extraction: { ...offer.extraction, requirements: [] } });

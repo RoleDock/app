@@ -66,6 +66,32 @@ class OfferAnalysisServiceTests {
         assertThat(analyze(row("Other", RequirementKind.REQUIRED, Centrality.CORE, Status.PARTIAL,
                 relation, EligibilityEffect.NONE, RequirementCategory.TECH_SKILL)).coverageScore()).isEqualTo(expected);
     }
+    @ParameterizedTest @CsvSource({"REQUIRED,MATCH", "PREFERRED,MATCH", "UNKNOWN,MATCH", "REQUIRED,MISSING", "REQUIRED,UNKNOWN"})
+    void unknownCentralityRequiresVerificationEvenWithPerfectKnownCoverage(RequirementKind kind, Status status) {
+        var uncertain = row("Other", kind, Centrality.UNKNOWN, status, TransferRelation.EXACT,
+                EligibilityEffect.NONE, RequirementCategory.TECH_SKILL);
+        var result = analyze(row("Java", Status.MATCH), uncertain);
+        assertThat(result.coverageScore()).isEqualTo(100);
+        assertThat(result.uncertainty().level()).isEqualTo(OfferAnalysis.UncertaintyLevel.HIGH);
+        assertThat(result.uncertainty().reasons()).anyMatch(reason -> reason.contains("centralité"));
+        assertThat(result.recommendation()).isEqualTo(OfferAnalysis.Recommendation.VERIFY_FIRST);
+        assertThat(result.contributions()).filteredOn(c -> c.requirementId().equals(uncertain.requirement().id()))
+                .allMatch(c -> !c.included());
+    }
+    @ParameterizedTest @CsvSource({"CONTEXTUAL,MATCH", "REQUIRED,NOT_APPLICABLE"})
+    void irrelevantUnknownCentralityDoesNotRaiseUncertainty(RequirementKind kind, Status status) {
+        var result = analyze(row("Java", Status.MATCH), row("Context", kind, Centrality.UNKNOWN, status,
+                TransferRelation.NONE, EligibilityEffect.NONE, RequirementCategory.OTHER));
+        assertThat(result.uncertainty().level()).isEqualTo(OfferAnalysis.UncertaintyLevel.LOW);
+        assertThat(result.recommendation()).isEqualTo(OfferAnalysis.Recommendation.APPLY_NOW);
+    }
+    @ParameterizedTest @CsvSource({"EQUIVALENT,Couverture par équivalence explicite.",
+            "ADJACENT,Couverture par compétence voisine.", "PREREQUISITE,Couverture par prérequis."})
+    void partialContributionRationalesAreFrench(TransferRelation relation, String rationale) {
+        var result = analyze(row("Other", RequirementKind.REQUIRED, Centrality.CORE, Status.PARTIAL,
+                relation, EligibilityEffect.NONE, RequirementCategory.TECH_SKILL));
+        assertThat(result.contributions().getFirst().rationale()).isEqualTo(rationale);
+    }
     @Test void unsupportedPartialIsExcludedWithExplanation() {
         var result = analyze(row("Other", RequirementKind.REQUIRED, Centrality.CORE, Status.PARTIAL,
                 TransferRelation.NONE, EligibilityEffect.NONE, RequirementCategory.OTHER));

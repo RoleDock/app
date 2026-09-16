@@ -45,7 +45,12 @@ final class ScoringRules {
                     "Durée proche du minimum : couverture conventionnelle de 0,75 (hypothèse v0, pas un ratio de durée).");
         }
         if (a.transferRelation() != TransferRelation.NONE && a.transferRelation() != TransferRelation.EXACT)
-            return new Coverage(TRANSFER_COVERAGE.get(a.transferRelation()), "Couverture par relation " + a.transferRelation() + ".");
+            return new Coverage(TRANSFER_COVERAGE.get(a.transferRelation()), switch (a.transferRelation()) {
+                case EQUIVALENT -> "Couverture par équivalence explicite.";
+                case ADJACENT -> "Couverture par compétence voisine.";
+                case PREREQUISITE -> "Couverture par prérequis.";
+                default -> throw new IllegalStateException("Unsupported partial transfer relation");
+            });
         return new Coverage(null, "Couverture partielle sans règle numérique applicable : à vérifier, exclue du calcul.");
     }
 }
