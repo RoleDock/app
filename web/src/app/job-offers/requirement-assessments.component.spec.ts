@@ -14,7 +14,10 @@ describe('Requirement evidence view', () => {
         category: 'TECH_SKILL', requirementKind: 'REQUIRED', centrality: 'CORE', explicitness: 'EXPLICIT', hardBlockerCandidate: true,
         blockerCondition: 'Java', constraint: null, extractionConfidence: null }] },
   };
-  const result: OfferAnalysis = { assessedOn: '2026-01-01', reviewStatus: 'UNREVIEWED', coverageScore: 74, eligibility: 'ELIGIBLE_WITH_CONSTRAINT', recommendation: 'VERIFY_FIRST', criticalGaps: [{ requirementId: 'r1', label: 'Java', status: 'MISSING', rationale: 'Point critique fictif.' }], uncertainty: { level: 'HIGH', reasons: ['Condition à vérifier.'] }, contributions: [], requirementAssessments: [{ requirementId: 'r1', status: 'UNKNOWN',
+  const result: OfferAnalysis = { assessedOn: '2026-01-01', reviewStatus: 'UNREVIEWED', coverageScore: 74, eligibility: 'ELIGIBLE_WITH_CONSTRAINT', recommendation: 'VERIFY_FIRST', criticalGaps: [{ requirementId: 'r1', label: 'Java', status: 'MISSING', rationale: 'Point critique fictif.' }], uncertainty: { level: 'HIGH', reasons: ['Condition à vérifier.'] }, contributions: [{
+    requirementId: 'r1', weight: 8, coverage: null, included: false, duplicateOf: null,
+    rationale: 'Information inconnue : exclue du dénominateur.',
+  }], requirementAssessments: [{ requirementId: 'r1', status: 'UNKNOWN',
     transferRelation: 'NONE', evidenceStrength: 'WEAK', assessmentConfidence: 'LOW', eligibilityEffect: 'POSSIBLE_BLOCK',
     rationale: 'Durée inconnue.', attention: 'Vérifiez le profil.', evidence: [{ type: 'EXPERIENCE', id: 'e1', label: 'Fictional — Developer' }] }] };
   let service: { analysis: ReturnType<typeof vi.fn> };
@@ -41,6 +44,46 @@ describe('Requirement evidence view', () => {
     expect(element.querySelector('.critical-gaps').textContent).toContain('Point critique fictif.');
     expect(element.querySelector('.uncertainty').textContent).toContain('Condition à vérifier.');
     expect(element.querySelector('article').textContent).toContain('Durée inconnue.');
+  });
+  it.each([
+    [0.75, '0,75'],
+    [0, '0'],
+    [null, 'Indisponible'],
+  ] as const)('renders included contribution coverage %s with its rationale and weight', (coverage, displayed) => {
+    service.analysis.mockReturnValueOnce(of({ ...result, contributions: [{
+      requirementId: 'r1', weight: 0.5, coverage, included: true, duplicateOf: null,
+      rationale: 'Couverture par équivalence explicite.',
+    }] }));
+    const article = render().nativeElement.querySelector('article');
+    expect(article.textContent).toContain('Couverture par équivalence explicite.');
+    expect(article.textContent).toContain('Poids : 0,5');
+    expect(article.textContent).toContain(`Couverture : ${displayed} (sur 1).`);
+  });
+  it('explains an excluded contribution without displaying weight or coverage', () => {
+    const article = render().nativeElement.querySelector('article');
+    expect(article.textContent).toContain('Information inconnue : exclue du dénominateur.');
+    expect(article.textContent).not.toContain('Poids :');
+    expect(article.textContent).not.toContain('Couverture :');
+  });
+  it('associates contributions with requirement IDs rather than response order', () => {
+    const second = { ...offer.extraction.requirements[0], id: 'r2', canonicalLabel: 'Angular' };
+    service.analysis.mockReturnValueOnce(of({ ...result,
+      requirementAssessments: [...result.requirementAssessments, { ...result.requirementAssessments[0], requirementId: 'r2' }],
+      contributions: [
+        { requirementId: 'r2', weight: 2, coverage: 0.5, included: true, duplicateOf: null, rationale: 'Contribution Angular.' },
+        { requirementId: 'r1', weight: 8, coverage: 1, included: true, duplicateOf: null, rationale: 'Contribution Java.' },
+      ],
+    }));
+    const articles = render({ ...offer, extraction: { ...offer.extraction,
+      requirements: [offer.extraction.requirements[0], second] } }).nativeElement.querySelectorAll('article');
+    expect(articles[0].textContent).toContain('Contribution Java.');
+    expect(articles[0].textContent).toContain('Poids : 8');
+    expect(articles[0].textContent).toContain('Couverture : 1 (sur 1).');
+    expect(articles[0].textContent).not.toContain('Contribution Angular.');
+    expect(articles[1].textContent).toContain('Contribution Angular.');
+    expect(articles[1].textContent).toContain('Poids : 2');
+    expect(articles[1].textContent).toContain('Couverture : 0,5 (sur 1).');
+    expect(articles[1].textContent).not.toContain('Contribution Java.');
   });
   it.each([
     ['APPLY_NOW', 'Candidature pertinente'],
