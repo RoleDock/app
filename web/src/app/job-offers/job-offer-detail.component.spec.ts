@@ -14,9 +14,9 @@ describe('Saved job offer', () => {
       contractType: 'UNKNOWN', sourceLanguage: null, summary: null, missions: [], requirements: [],
     },
   };
-  let service: { get: ReturnType<typeof vi.fn> };
+  let service: { get: ReturnType<typeof vi.fn>; assessments: ReturnType<typeof vi.fn> };
   beforeEach(async () => {
-    service = { get: vi.fn(() => of(saved)) };
+    service = { get: vi.fn(() => of(saved)), assessments: vi.fn(() => of({ assessedOn: '2026-01-01', assessments: [] })) };
     await TestBed.configureTestingModule({
       imports: [JobOfferDetailComponent],
       providers: [provideRouter([]), { provide: JobOfferService, useValue: service },

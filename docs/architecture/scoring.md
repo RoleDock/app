@@ -2,6 +2,11 @@
 
 ## Goal
 
+The implemented first slice is [individual requirement assessment](requirement-assessments.md).
+Global scoring and aggregation below remain future design work. Missing evidence
+in an incomplete profile produces UNKNOWN, not automatically MISSING; this
+supersedes the shorthand absence examples below.
+
 Produce a useful compatibility score without pretending that job compatibility
 is objectively measurable to one decimal point. The result must remain
 deterministic, explainable, and traceable to individual requirements.
@@ -29,6 +34,7 @@ Job offer
 - `MATCH`
 - `PARTIAL`
 - `MISSING`
+- `UNKNOWN`
 - `NOT_APPLICABLE`
 
 ## Important rule

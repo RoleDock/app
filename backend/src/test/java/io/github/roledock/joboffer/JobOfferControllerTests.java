@@ -44,6 +44,34 @@ class JobOfferControllerTests {
     }
 
     @Test
+    void assessmentsRecomputeFromCurrentProfileWithoutCallingExtractorOrChangingReview() throws Exception {
+        var saved = service.save(new JobOfferService.Pending(UUID.randomUUID(), TEXT, null, java.time.Instant.now(), extraction()));
+        clearInvocations(extractor);
+        var skillId = UUID.randomUUID();
+        String profile = "{\"skills\":[{\"id\":\"" + skillId + "\",\"name\":\"Java\"}],\"certificationsComplete\":true}";
+        mvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content(profile)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.certificationsComplete").value(true));
+        mvc.perform(get("/api/job-offers/" + saved.id() + "/requirement-assessments"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.assessedOn").isNotEmpty())
+                .andExpect(jsonPath("$.assessments[0].requirementId").value(saved.extraction().requirements().getFirst().id().toString()))
+                .andExpect(jsonPath("$.assessments[0].status").value("MATCH"))
+                .andExpect(jsonPath("$.assessments[0].evidence[0].id").value(skillId.toString()));
+        mvc.perform(put("/api/profile").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.certificationsComplete").value(false));
+        mvc.perform(get("/api/job-offers/" + saved.id() + "/requirement-assessments"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.assessments[0].status").value("UNKNOWN"));
+        mvc.perform(get("/api/job-offers/" + saved.id())).andExpect(jsonPath("$.reviewStatus").value("UNREVIEWED"));
+        verifyNoInteractions(extractor);
+    }
+
+    @Test
+    void assessmentsRejectMissingAndMalformedOfferIds() throws Exception {
+        mvc.perform(get("/api/job-offers/" + UUID.randomUUID() + "/requirement-assessments")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/job-offers/invalid/requirement-assessments")).andExpect(status().isBadRequest());
+        verifyNoInteractions(extractor);
+    }
+
+    @Test
     void persistsAndRetrievesCompleteDraftWithoutTheAnalysisSession() throws Exception {
         var session = new MockHttpSession();
         String id = analyze(session, "https://example.org/vacancy");

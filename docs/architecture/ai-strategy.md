@@ -18,6 +18,8 @@ where deterministic behavior is possible.
 ## Not delegated to AI
 
 - the authoritative candidate profile;
+- individual requirement matching: the implemented [assessment engine](requirement-assessments.md)
+  uses only explicit deterministic rules and candidate evidence, with zero provider calls;
 - the final compatibility score;
 - persistence rules;
 - application status rules;

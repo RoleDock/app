@@ -44,6 +44,15 @@ describe('ProfileComponent', () => {
     expect(documentElements('[data-testid="experience-item"]')).toHaveLength(0);
   });
 
+  it('requires an explicit certification completeness declaration and saves it', () => {
+    finishLoad(existingProfile);
+    const checkbox = element('input[formcontrolname="certificationsComplete"]') as HTMLInputElement;
+    expect(checkbox.checked).toBe(false);
+    checkbox.checked = true; checkbox.dispatchEvent(new Event('change')); fixture.detectChanges();
+    submit();
+    expect(service.save.mock.calls[0][0].certificationsComplete).toBe(true);
+  });
+
   it('adds and removes repeatable items and sends explicit skill attachments', () => {
     finishLoad(null);
     click('[data-testid="add-skill"]');

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ProfileService {
+public class ProfileService {
     private static final String CURRENT = "CURRENT";
 
     private final CandidateProfileRepository repository;
@@ -28,7 +28,7 @@ class ProfileService {
     }
 
     @Transactional(readOnly = true)
-    Optional<Response> getCurrentProfile() {
+    public Optional<Response> getCurrentProfile() {
         return repository.findByProfileKey(CURRENT).map(this::toResponse);
     }
 
@@ -47,6 +47,7 @@ class ProfileService {
         replaceValues(profile.getWorkModes(), safe(request.workModes()));
         replaceStrings(profile.getContractTypes(), request.contractTypes());
         profile.setAdditionalInformation(clean(request.additionalInformation()));
+        profile.setCertificationsComplete(request.certificationsComplete());
 
         Map<UUID, Skill> skills = syncSkills(profile, safe(request.skills()));
         syncExperiences(profile, safe(request.experiences()), skills);
@@ -158,7 +159,7 @@ class ProfileService {
                 profile.getLanguages().stream().map(l -> new LanguageData(l.getId(), l.getName(), l.getLevel())).toList(),
                 profile.getCertifications().stream().map(c -> new CertificationData(c.getId(), c.getName(), c.getIssuer(), c.getIssueDate(), c.getExpirationDate(), c.getCredentialId(), c.getCredentialUrl())).toList(),
                 profile.getProjects().stream().map(p -> new ProjectData(p.getId(), p.getName(), p.getRole(), p.getDescription(), p.getStartDate(), p.getEndDate(), p.getUrl())).toList(),
-                profile.getAdditionalInformation());
+                profile.getAdditionalInformation(), profile.isCertificationsComplete());
     }
 
     private static String clean(String value) {

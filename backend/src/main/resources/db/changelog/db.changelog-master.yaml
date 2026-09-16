@@ -12,3 +12,5 @@ databaseChangeLog:
       file: db/changelog/0003-job-offers.sql
   - include:
       file: db/changelog/0004-job-offer-review.sql
+  - include:
+      file: db/changelog/0005-certification-completeness.sql

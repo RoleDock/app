@@ -5,10 +5,11 @@ import { JobOffer, reviewLabel } from './job-offer.models';
 import { JobOfferService } from './job-offer.service';
 import { JobOfferPreviewComponent } from './job-offer-preview.component';
 import { JobOfferProgressComponent } from './job-offer-progress.component';
+import { RequirementAssessmentsComponent } from './requirement-assessments.component';
 
 @Component({
   selector: 'app-job-offer-detail',
-  imports: [RouterLink, JobOfferPreviewComponent, JobOfferProgressComponent],
+  imports: [RouterLink, JobOfferPreviewComponent, JobOfferProgressComponent, RequirementAssessmentsComponent],
   template: `
     <main class="page-shell">
       <app-job-offer-progress page="detail" [reviewStatus]="offer()?.reviewStatus ?? null" [reviewBypassedAt]="offer()?.reviewBypassedAt ?? null" />
@@ -23,6 +24,7 @@ import { JobOfferProgressComponent } from './job-offer-progress.component';
           @if (saved.sourceUrl) { <p>Source : <a class="secondary" [href]="saved.sourceUrl" target="_blank" rel="noopener noreferrer">{{ saved.sourceUrl }}</a></p> }
           <details><summary>Annonce originale</summary><pre style="white-space: pre-wrap; overflow-wrap: anywhere">{{ saved.originalText }}</pre></details>
         </section>
+        <app-requirement-assessments [offer]="saved" />
       }
     </main>
   `,

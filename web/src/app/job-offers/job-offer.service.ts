@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Analysis, JobOffer, ReviewCommand } from './job-offer.models';
+import { AssessmentResponse } from './requirement-assessment.models';
 
 @Injectable({ providedIn: 'root' })
 export class JobOfferService {
@@ -16,5 +17,8 @@ export class JobOfferService {
   }
   get(id: string) {
     return this.http.get<JobOffer>(`/api/job-offers/${encodeURIComponent(id)}`);
+  }
+  assessments(id: string) {
+    return this.http.get<AssessmentResponse>(`/api/job-offers/${encodeURIComponent(id)}/requirement-assessments`);
   }
 }
