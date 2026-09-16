@@ -71,6 +71,7 @@ export interface ProfilePayload {
   certifications: CertificationData[];
   projects: ProjectData[];
   additionalInformation: string | null;
+  certificationsComplete?: boolean;
 }
 
 export interface CandidateProfile extends ProfilePayload {

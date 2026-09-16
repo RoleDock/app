@@ -21,6 +21,8 @@ skill identifiers supplied by the candidate.
 - mobility and ordered desired locations
 - ordered work modes and contract types
 - `additional_information`
+- `certifications_complete`: explicit completeness declaration, false by default;
+  introduced by additive migration 0005 for conservative certification assessment.
 
 ### `Experience`
 
@@ -137,7 +139,14 @@ requirement source, allows null raw text/confidence for manual requirements only
 and enforces that provenance distinction with a database constraint. Migration
 0003 and earlier migrations remain unchanged.
 
-The following analysis/matching entities remain conceptual and unimplemented.
+### `RequirementAssessment` (implemented, not persisted)
+
+On-demand result keyed by requirement UUID, with status, transfer relation,
+evidence strength, assessment confidence, eligibility effect, typed candidate
+evidence references and explanations. See [deterministic assessments](requirement-assessments.md).
+No assessment table or global score is introduced.
+
+The following historical analysis/matching entities remain conceptual and unimplemented.
 
 ### `OfferAnalysis`
 

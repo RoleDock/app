@@ -134,6 +134,7 @@ export class ProfileComponent implements OnInit {
     certifications: new FormArray<CertificationForm>([]),
     projects: new FormArray<ProjectForm>([]),
     additionalInformation: text('', 5000),
+    certificationsComplete: new FormControl(false, { nonNullable: true }),
   });
 
   ngOnInit(): void {
@@ -290,6 +291,7 @@ export class ProfileComponent implements OnInit {
     this.form.patchValue({
       mainTitle: value.mainTitle ?? '', currentLocation: value.currentLocation ?? '', professionalSummary: value.professionalSummary ?? '',
       mobility: value.mobility ?? '', additionalInformation: value.additionalInformation ?? '',
+      certificationsComplete: value.certificationsComplete ?? false,
       workModes: {
         ONSITE: value.workModes.includes('ONSITE'), HYBRID: value.workModes.includes('HYBRID'), REMOTE: value.workModes.includes('REMOTE'),
       },
@@ -339,6 +341,7 @@ export class ProfileComponent implements OnInit {
         startDate: this.nullable(item.startDate), endDate: this.nullable(item.endDate), url: this.nullable(item.url),
       })),
       additionalInformation: this.nullable(raw.additionalInformation),
+      certificationsComplete: raw.certificationsComplete,
     };
   }
 

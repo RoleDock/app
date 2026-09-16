@@ -263,8 +263,10 @@ survive edits/reordering, and intermediate order changes avoid unique collisions
 Unknown offers return 404, invalid commands 400, and bypass of reviewed data 409.
 Original advertisement and initial extraction snapshot are never replaced.
 
-No profile access, matching or scoring is implemented. Future matching must use
+The extraction/review services have no profile access or scoring. The separate
+[requirement assessment service](requirement-assessments.md) now performs on-demand
+matching without provider calls. Matching must use
 `reviewStatus` as the authority: `UNREVIEWED` data may continue with a warning, but
 cannot alone justify definitive elimination. A blocker from unreviewed extraction
 requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`, even after explicit bypass.
-This is a documented future rule, not a scoring implementation.
+Individual blocker safety is implemented; global recommendation remains future work.

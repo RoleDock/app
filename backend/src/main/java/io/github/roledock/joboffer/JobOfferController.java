@@ -17,9 +17,17 @@ class JobOfferController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JobOfferController.class);
     private final JobOfferService service;
     private final JobOfferReviewService reviewService;
+    private final JobOfferAssessmentService assessments;
 
-    JobOfferController(JobOfferService service, JobOfferReviewService reviewService) {
+    JobOfferController(JobOfferService service, JobOfferReviewService reviewService, JobOfferAssessmentService assessments) {
         this.service = service; this.reviewService = reviewService;
+        this.assessments = assessments;
+    }
+
+    @GetMapping("/{id}/requirement-assessments")
+    ResponseEntity<?> assessments(@PathVariable UUID id) {
+        return assessments.get(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElseGet(() ->
+                ResponseEntity.status(404).body(new ApiError("OFFER_NOT_FOUND", "Offre introuvable.", Map.of())));
     }
 
     @PutMapping("/{id}/review")

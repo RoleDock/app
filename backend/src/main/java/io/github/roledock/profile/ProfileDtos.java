@@ -28,7 +28,8 @@ public final class ProfileDtos {
             List<@NotNull @Valid LanguageData> languages,
             List<@NotNull @Valid CertificationData> certifications,
             List<@NotNull @Valid ProjectData> projects,
-            @Size(max = 5000) String additionalInformation) {
+            @Size(max = 5000) String additionalInformation,
+            boolean certificationsComplete) {
     }
 
     public record Response(
@@ -47,7 +48,8 @@ public final class ProfileDtos {
             List<LanguageData> languages,
             List<CertificationData> certifications,
             List<ProjectData> projects,
-            String additionalInformation) {
+            String additionalInformation,
+            boolean certificationsComplete) {
     }
 
     public record ExperienceData(

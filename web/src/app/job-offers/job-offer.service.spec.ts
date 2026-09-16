@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { JobOfferService } from './job-offer.service';
+import { AssessmentResponse } from './requirement-assessment.models';
 
 describe('JobOfferService', () => {
   let service: JobOfferService;
@@ -37,5 +38,14 @@ describe('JobOfferService', () => {
     const req = http.expectOne('/api/job-offers/saved-id');
     expect(req.request.method).toBe('GET');
     req.flush({});
+  });
+  it('retrieves assessments with GET and an encoded offer identifier', () => {
+    const response: AssessmentResponse = { assessedOn: '2026-09-16', assessments: [] };
+    const received = vi.fn();
+    service.assessments('offer/id ?#').subscribe(received);
+    const req = http.expectOne('/api/job-offers/offer%2Fid%20%3F%23/requirement-assessments');
+    expect(req.request.method).toBe('GET');
+    req.flush(response);
+    expect(received).toHaveBeenCalledExactlyOnceWith(response);
   });
 });

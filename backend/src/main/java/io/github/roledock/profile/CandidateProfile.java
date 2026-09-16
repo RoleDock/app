@@ -20,6 +20,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "candidate_profile")
 class CandidateProfile {
+    @Column(name = "certifications_complete", nullable = false)
+    private boolean certificationsComplete;
+
+    boolean isCertificationsComplete() { return certificationsComplete; }
+    void setCertificationsComplete(boolean complete) { certificationsComplete = complete; }
 
     @Id
     private UUID id;

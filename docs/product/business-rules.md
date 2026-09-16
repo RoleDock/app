@@ -32,7 +32,9 @@ reviewed regardless of the retained timestamp. Manually added requirements have
 Future matching may use unreviewed data with a warning, but unreviewed extraction
 alone must never produce a definitive elimination recommendation. An unreviewed
 blocker requires `VERIFY_FIRST`, not `SKIP_CONFIRMED_BLOCKER`. Bypassing does not
-relax this rule. No matching or scoring is implemented in this slice.
+relax this rule. Individual matching is now implemented as described in
+[requirement assessments](../architecture/requirement-assessments.md); global scoring
+and recommendation remain unimplemented.
 
 The original advertisement remains intact, the initial validated extraction is
 retained separately, and current structured values can evolve later without
@@ -47,11 +49,19 @@ The current match states are:
 - `MATCH`
 - `PARTIAL`
 - `MISSING`
+- `UNKNOWN`
 - `NOT_APPLICABLE`
 
 The final score must be deterministic and explainable. An LLM must not directly
 output the authoritative final score. A missing nice-to-have must not carry the
 same impact as a missing required skill.
+
+Absence of evidence is not evidence of absence. UNKNOWN is the default when the
+profile is insufficient. An absent certification yields MISSING only when the
+candidate explicitly declares the certification list complete; existing profiles
+default to incomplete. An unreviewed blocker can only be POSSIBLE_BLOCK. A
+one-year experience shortfall is not an automatic blocker. These individual
+assessments do not calculate a global score or recommendation.
 
 ## CV keywords
 
